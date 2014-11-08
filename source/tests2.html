@@ -13,17 +13,31 @@
 <body>
 <div id="controls">
 	<form>
-		From : 
-		<input type="text" id="x1">
-		<input type="text" id="y1"> 
+		p1 (red) &nbsp; : From : 
+		<input type="text" id="p1x1">
+		<input type="text" id="p1y1"> 
 		To: 
-		<input type="text" id="x2">
-		<input type="text" id="y2"> 
+		<input type="text" id="p1x2">
+		<input type="text" id="p1y2"> 
+		<br/>
 
-		<input type="submit" value="Dijkstra" id="launch">
-		<input type="radio" name="group1" id="x1"> x1
-		<input type="radio" name="group1" id="x500"> x500
-		<input type="radio" name="group1" id="x1000"> x1000
+		p2 (green) From : 
+		<input type="text" id="p2x1">
+		<input type="text" id="p2y1"> 
+		To: 
+		<input type="text" id="p2x2">
+		<input type="text" id="p2y2"> 
+		<br/>
+
+		p3 (blue) &nbsp; From : 
+		<input type="text" id="p3x1">
+		<input type="text" id="p3y1"> 
+		To: 
+		<input type="text" id="p3x2">
+		<input type="text" id="p3y2"> 
+		<br/>
+
+		<input type="submit" value="Dijkstra Improved" id="launch">
 
 		<div id="timer"></div>
 	</form>
@@ -36,6 +50,7 @@
 <script type="text/javascript">
 
 	// Data values
+	var turn = 0;
 	var data = ["************************************************",
                 "*      *              *    11               A  *",
                 "* ** A  *   ********** *             *   *     *",
@@ -62,33 +77,47 @@
 	document.getElementById('test_result').appendChild(g.debugDraw());
 
 	document.getElementById("launch").onclick = function() {
-		var y1 = document.getElementById("x1").value;
-		var x1 = document.getElementById("y1").value;
-		var y2 = document.getElementById("x2").value;
-		var x2 = document.getElementById("y2").value;
 
-		var nodeA = g.getNodeAt(x1,y1);
-		var nodeB = g.getNodeAt(x2,y2);
+		var pawn1 = new Pawn("1");
+		var pawn3 = new Pawn("2");
+		var pawn2 = new Pawn("3");
 
-		var i = 1;
+		var p1y1 = document.getElementById("p1x1").value;
+		var p1x1 = document.getElementById("p1y1").value;
+		var p1y2 = document.getElementById("p1x2").value;
+		var p1x2 = document.getElementById("p1y2").value;
 
-		if(document.getElementById("x500").checked)
-			i = 500;
-		else if(document.getElementById("x1000").checked)
-			i = 1000;
+		var p1nodeA = g.getNodeAt(p1x1,p1y1);
+		var p1nodeB = g.getNodeAt(p1x2,p1y2);
 
-		if(nodeA && nodeB) {
+		var p2y1 = document.getElementById("p2x1").value;
+		var p2x1 = document.getElementById("p2y1").value;
+		var p2y2 = document.getElementById("p2x2").value;
+		var p2x2 = document.getElementById("p2y2").value;
+
+		var p2nodeA = g.getNodeAt(p2x1,p2y1);
+		var p2nodeB = g.getNodeAt(p2x2,p2y2);
+
+		var p3y1 = document.getElementById("p3x1").value;
+		var p3x1 = document.getElementById("p3y1").value;
+		var p3y2 = document.getElementById("p3x2").value;
+		var p3x2 = document.getElementById("p3y2").value;
+
+		var p3nodeA = g.getNodeAt(p3x1,p3y1);
+		var p3nodeB = g.getNodeAt(p3x2,p3y2);
+
+
+		if(p1nodeA && p1nodeB && p2nodeB && p2nodeA && p3nodeB && p3nodeB) {
 			var start = new Date().getTime();
-			for(; i > 0 ; i--) {
-				var path = g.dijkstra(nodeA, nodeB, 0);
-			}
-			console.log(path.getPath());
+			var p1path = g.dijkstraImproved(p1nodeA, p1nodeB, turn, pawn1);
+			var p2path = g.dijkstraImproved(p2nodeA, p2nodeB, turn, pawn2);
+			var p3path = g.dijkstraImproved(p3nodeA, p3nodeB, turn, pawn3);
 			var time = new Date().getTime() - start;
 
 			document.getElementById('timer').innerHTML = '( in '+time+' ms)';
 
 			document.getElementById('test_result').innerHTML = '';
-			document.getElementById('test_result').appendChild(g.debugDraw(path));
+			document.getElementById('test_result').appendChild(g.debugDraw([ p1path, p2path, p3path ]));
 		} else {
 			alert("Error : no node could be selected");
 		}
