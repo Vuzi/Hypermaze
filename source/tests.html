@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test !</title>
+	<style type="text/css">
+
+		#controls input[type="text"]{
+			width: 25px;
+		}
+
+	</style>
+</head>
+<body>
+<div id="controls">
+	<form>
+		From : 
+		<input type="text" id="x1">
+		<input type="text" id="y1"> 
+		To: 
+		<input type="text" id="x2">
+		<input type="text" id="y2"> 
+
+		<input type="submit" value="Dijkstra" id="launch">
+		<input type="radio" name="group1" id="x1"> x1
+		<input type="radio" name="group1" id="x500"> x500
+		<input type="radio" name="group1" id="x1000"> x1000
+
+		<div id="timer"></div>
+	</form>
+</div>
+<div id="test_result"></div>
+
+<script type="text/javascript" src="array_utils.js"></script>
+<script type="text/javascript" src="ordered_stack.js"></script>
+<script type="text/javascript" src="graph.js"></script>
+<script type="text/javascript">
+
+	// Data values
+	var data = ["************************************************",
+                "*      *              *    11               A  *",
+                "* ** A  *   ********** *             *   *     *",
+                "* **    *      *     * * *******     *****     *",
+                "*  *    ****   * G*  *   GGG      *  *         *",
+                "*  *         *  * G*  *******     *  ******    *",
+                "*                GG* *      *     *       **   *",
+                "*****G********************  *  ********   *    *",
+                "*  GGGG  * GGGG   *         *         *   *  * *",
+                "* *** GG * G*G*****  ***    ******    *   *    *",
+                "*GGGGGG  * G*G*       *          *    *   **   *",
+                "* G****  *        *************  ******   *    *",
+                "* GGGGGGGGG *   P     GGGG   *           *     *",
+                "****** ******     **** GGGG   *      ********  *",
+                "*           *     *      GGG  *                *",
+                "*  ******   *        666                       *",
+                "*   *             P                     D      *",
+                "*    D      *              22                  *",
+                "************************************************"];
+
+    // Create graph
+	var g = new Graph(data, true);
+	// Show the generated graph in 'test_result'
+	document.getElementById('test_result').appendChild(g.debugDraw());
+
+	document.getElementById("launch").onclick = function() {
+		var y1 = document.getElementById("x1").value;
+		var x1 = document.getElementById("y1").value;
+		var y2 = document.getElementById("x2").value;
+		var x2 = document.getElementById("y2").value;
+
+		var nodeA = g.getNodeAt(x1,y1);
+		var nodeB = g.getNodeAt(x2,y2);
+
+		var i = 1;
+
+		if(document.getElementById("x500").checked)
+			i = 500;
+		else if(document.getElementById("x1000").checked)
+			i = 1000;
+
+		if(nodeA && nodeB) {
+			var start = new Date().getTime();
+			for(; i > 0 ; i--) {
+				var path = g.dijkstra(nodeA, nodeB);
+			}
+			var time = new Date().getTime() - start;
+
+			document.getElementById('timer').innerHTML = '( in '+time+' ms)';
+
+			document.getElementById('test_result').innerHTML = '';
+			document.getElementById('test_result').appendChild(g.debugDraw(path));
+		} else {
+			alert("Error : no node could be selected");
+		}
+
+		return false;
+	};
+
+</script>
+
+</body>
+</html>
