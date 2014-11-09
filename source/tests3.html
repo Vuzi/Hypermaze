@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test !</title>
+	<style type="text/css">
+
+		#controls input[type="text"]{
+			width: 25px;
+		}
+
+	</style>
+</head>
+<body>
+<div id="controls">
+	<form>
+		From : 
+		<input type="text" id="x1">
+		<input type="text" id="y1"> 
+		To: 
+		<input type="text" id="x2">
+		<input type="text" id="y2">
+
+		<span><span id="pawn_nb">0</span> pawn(s) added.</span>
+
+		<input type="button" value="Add pawn" id="add">
+		<input type="button" value="Launch" id="launch">
+
+		<span id="timer"></span>
+	</form>
+</div>
+<div id="test_result"></div>
+
+<script type="text/javascript" src="array_utils.js"></script>
+<script type="text/javascript" src="ordered_stack.js"></script>
+<script type="text/javascript" src="graph.js"></script>
+<script type="text/javascript">
+
+	// Data values
+	var pawns = [];
+	var dests = [];
+	var data = ["************************************************",
+                "*      *              *    11               A  *",
+                "* ** A  *   ********** *             *   *     *",
+                "* **    *      *     * * *******     *****     *",
+                "*  *    ****   * G*  *   GGG      *  *         *",
+                "*  *         *  * G*  *******     *  ******    *",
+                "*                GG* *      *     *       **   *",
+                "*****G********************  *  ********   *    *",
+                "*  GGGG  * GGGG   *         *         *   *  * *",
+                "* *** GG * G*G*****  ***    ******    *   *    *",
+                "*GGGGGG  * G*G*       *          *    *   **   *",
+                "* G****  *        *************  ******   *    *",
+                "* GGGGGGGGG *   P     GGGG   *           *     *",
+                "****** ******     **** GGGG   *      ********  *",
+                "*           *     *      GGG  *                *",
+                "*  ******   *        666                       *",
+                "*   *             P                     D      *",
+                "*    D      *              22                  *",
+                "************************************************"];
+
+    // Create graph
+	var g = new Graph(data, true);
+	// Show the generated graph in 'test_result'
+	document.getElementById('test_result').appendChild(g.debugDraw());
+
+	document.getElementById("add").onclick = function() {
+		// Get the values
+		var x1 = document.getElementById("y1").value;
+		var y1 = document.getElementById("x1").value;
+
+		var x2 = document.getElementById("y2").value;
+		var y2 = document.getElementById("x2").value;
+
+		var nodeA = g.getNodeAt(x1, y1);
+		var nodeB = g.getNodeAt(x2, y2);
+
+		// If nodes selectable
+		if(nodeA && nodeB) {
+			document.getElementById("y1").value = "";
+			document.getElementById("x1").value = "";
+
+			document.getElementById("y2").value = "";
+			document.getElementById("x2").value = "";
+
+			// Add to the pawn list
+			pawns.push(new Pawn(""+pawns.length, nodeA));
+			dests.push(nodeB);
+			document.getElementById("pawn_nb").innerHTML = pawns.length;
+		} else {
+			alert("Error : no node could be selected");
+		}
+
+		return false;
+	};
+
+	document.getElementById("launch").onclick = function() {
+
+		if(pawns.length > 0) {
+			main(pawns, g, dests);
+		} else {
+			alert("Error : no pawns added");
+		}
+
+		return false;
+	};
+
+
+	/**
+	 * Main debug function. The goal is here to check the behaviour
+	 * of several pawns in the map.
+	 * @param  {Array} pawns Array of pawns.
+	 * @param  {Graph} graph The grap used
+	 * @param  {Array} dests Array of nodes used for destinations.
+	 */
+	function main(pawns, graph, dests) {
+		var time = 0;
+
+		document.getElementById("launch").value = "Next turn ("+time+")";
+		document.getElementById("launch").onclick = function() {
+			// Change turn id
+			document.getElementById("launch").value = "Next turn ("+time+")";
+
+			// Update turn
+			var start = new Date().getTime();
+			var results = turn(time, pawns, graph, dests);
+			time++;
+			var timer = new Date().getTime() - start;
+
+			// Redraw the map & infos
+			document.getElementById('timer').innerHTML = '( in '+timer+' ms)';
+			document.getElementById('test_result').innerHTML = '';
+			document.getElementById('test_result').appendChild(g.debugDraw(results));
+
+			return false;
+		};
+	}
+
+	/**
+	 * Turn function, called by the main function for each turn.
+	 * @param  {number} time The actual turn time.
+	 * @param  {Array} pawns Array of pawns.
+	 * @param  {Graph} graph The grap used.
+	 * @param  {Array} dests Array of nodes used for destinations.
+	 */
+	function turn(time, pawns, graph, dests) {
+
+		console.log("eval turn "+time);
+
+		var results = [];
+
+		// For each pawns
+		for(var i = 0; i < pawns.length; i++) {
+			var pawn = pawns[i];
+			var dest = dests[i];
+
+			// Get the path
+			var result = g.dijkstraImproved(pawn.node, dest, time, pawn);
+			results.push(result);
+
+			console.log(result.getPath());
+
+			// If not bloqued, update the position
+			if(result) {
+				pawn.updatePosition(result);
+			}
+		}
+
+		return results;
+	}
+
+</script>
+
+</body>
+</html>

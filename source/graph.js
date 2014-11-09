@@ -38,8 +38,8 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
 Node.prototype.isEmpty = function(turn, prevision_turn) {
 
 	// Test if empty at the current moment
-	if(prevision_turn == 0 && this.pawn != null)
-		return true;
+	//if(prevision_turn == 0 && this.pawn != null)
+	//	return true;
 
 	// If no previsions for the current turn
 	if(turn != this.turn) {
@@ -384,43 +384,49 @@ Graph.prototype.debugDraw = function(path) {
 		}
 
 		for(var l = 0; l < path.length; l++) {
-			var paths = path[l].getPath();
-			var color;
+			if(path[l]) {
+				var paths = path[l].getPath();
+				var color;
 
-			if(l == 0)
-				color = 'red';
-			else if(l == 1)
-				color = 'green';
-			else if(l == 2)
-				color = 'blue';
-			else
-				color = 'orange';
+				if(l == 0)
+					color = 'red';
+				else if(l == 1)
+					color = 'green';
+				else if(l == 2)
+					color = 'blue';
+				else
+					color = 'orange';
 
-			for (var k = paths.length - 1; k >= 0; k--) {
-				var elem = paths[k];
-				
-				if(elem instanceof Node) {
-					var x = elem.y * 2 * 24;
-					var y = elem.x * 2 * 24;
+				for (var k = paths.length - 1; k >= 0; k--) {
+					var elem = paths[k];
+					
+					if(elem instanceof Node) {
+						var x = elem.y * 2 * 24;
+						var y = elem.x * 2 * 24;
 
-					ctx.beginPath();
-					ctx.arc(x+11+(l*3), y+11+(l*3), 12, 0, 2*Math.PI, false);
-					ctx.lineWidth = 4;
-					ctx.strokeStyle = color;
-					ctx.stroke();
-				} else if(elem instanceof Edge) {
-					var x1 = elem.nodeA.y * 2 * 24 + 10;
-					var y1 = elem.nodeA.x * 2 * 24 + 10;
+						ctx.beginPath();
+						ctx.arc(x+11+(l*3), y+11+(l*3), 12, 0, 2*Math.PI, false);
+						if(k == 2) {
+							ctx.fillStyle = color;
+							ctx.fill();
+						}
+						ctx.lineWidth = 4;
+						ctx.strokeStyle = color;
+						ctx.stroke();
+					} else if(elem instanceof Edge) {
+						var x1 = elem.nodeA.y * 2 * 24 + 10;
+						var y1 = elem.nodeA.x * 2 * 24 + 10;
 
-					var x2 = elem.nodeB.y * 2 * 24 + 10;
-					var y2 = elem.nodeB.x * 2 * 24 + 10;
+						var x2 = elem.nodeB.y * 2 * 24 + 10;
+						var y2 = elem.nodeB.x * 2 * 24 + 10;
 
-					ctx.beginPath();
-					ctx.moveTo(x1+(l*3), y1+(l*3));
-					ctx.lineTo(x2+(l*3), y2+(l*3));
-					ctx.lineWidth = 5;
-					ctx.strokeStyle = color;
-					ctx.stroke();
+						ctx.beginPath();
+						ctx.moveTo(x1+(l*3), y1+(l*3));
+						ctx.lineTo(x2+(l*3), y2+(l*3));
+						ctx.lineWidth = 5;
+						ctx.strokeStyle = color;
+						ctx.stroke();
+					}
 				}
 			}
 		}
@@ -496,7 +502,7 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 			return 0;
 	});
 	var visited = [start];
-	stack.push(new Path(start, turn));
+	stack.push(new Path(start));
 
 	// If not at the destination
 	while(stack.peek() !== null && stack.peek().node != dest) {
@@ -533,12 +539,12 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 /**
  * Path result, stocked as a linked list.
  */
-Path = function(source, turn) {
+Path = function(source) {
 	this.value = source.value;
 	this.edge = null;
 	this.node = source;
 	this.previous = null;
-	this.turn = turn;
+	this.turn = 1;
 };
 
 /**
@@ -549,8 +555,9 @@ Path = function(source, turn) {
  * @return {Path}      The new path.
  */
 Path.prototype.nextStep = function(edge, node) {
-	var path = new Path(node, this.turn + 1 + node.value);
+	var path = new Path(node);
 
+	path.turn = this.turn + 1 + node.value;
 	path.value = this.value + edge.value + node.value;
 	path.edge = edge;
 	path.previous = this;
@@ -582,7 +589,31 @@ Path.prototype.getPath = function() {
  * Element walking on the graph.
  * @param {string} id The id of the pawn.
  */
-Pawn = function(id) {
+Pawn = function(id, node) {
 	this.id = id;
-	this.node = null;
+	this.node = node;
 }
+
+/**
+ * Set the position of the pawn on the graph.
+ * @param {Node} node The node where the pawn should be
+ */
+Pawn.prototype.setPosition = function(node) {
+	if(this.node)
+		this.node.pawn = null;
+	this.node = node;
+	node.pawn = this;
+};
+
+/**
+ * Update the position of the pawn using the
+ * given result path.
+ * @param  {path} path The path to use.
+ */
+Pawn.prototype.updatePosition = function(path) {
+	var paths = path.getPath();
+
+	if(paths.length >= 3) {
+		this.setPosition(paths[2]);
+	}
+};
