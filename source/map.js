@@ -46,7 +46,7 @@ Map.prototype.draw = function() {
 Map.prototype.drawTileAt = function(ctx, tile_id, x, y) {
 	var tile_coords = this.tileset.tex_coords[tile_id];
 	if(tile_coords) {
-		ctx.drawImage(this.tileset.image,        // The spritesheet
+		ctx.drawImage(this.tileset.spritesheet,  // The spritesheet
 					  tile_coords.x,             // The x position  in the spritesheet
 					  tile_coords.y,             // The y position  "                "
 					  this.tileset.tile_size,    // The tile width  "                "
