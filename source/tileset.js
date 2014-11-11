@@ -5,7 +5,7 @@
  */
 Tileset = function(spritesheet_path) {
 
-	this.spritesheet = new spritesheet();
+	this.spritesheet = new Image();
 
 	if (spritesheet_path === undefined) {
 		this.spritesheet.src = "default_tileset.png";
