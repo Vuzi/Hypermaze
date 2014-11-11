@@ -14,27 +14,27 @@
 <div id="controls">
 	<form>
 		p1 (red) &nbsp; : From : 
-		<input type="text" id="p1x1">
-		<input type="text" id="p1y1"> 
+		<input type="text" id="p1x1" value="1">
+		<input type="text" id="p1y1" value="1"> 
 		To: 
-		<input type="text" id="p1x2">
-		<input type="text" id="p1y2"> 
+		<input type="text" id="p1x2" value="4">
+		<input type="text" id="p1y2" value="1"> 
 		<br/>
 
 		p2 (green) From : 
-		<input type="text" id="p2x1">
-		<input type="text" id="p2y1"> 
+		<input type="text" id="p2x1" value="2">
+		<input type="text" id="p2y1" value="4"> 
 		To: 
-		<input type="text" id="p2x2">
-		<input type="text" id="p2y2"> 
+		<input type="text" id="p2x2" value="5">
+		<input type="text" id="p2y2" value="5"> 
 		<br/>
 
 		p3 (blue) &nbsp; From : 
-		<input type="text" id="p3x1">
-		<input type="text" id="p3y1"> 
+		<input type="text" id="p3x1" value="42">
+		<input type="text" id="p3y1" value="17"> 
 		To: 
-		<input type="text" id="p3x2">
-		<input type="text" id="p3y2"> 
+		<input type="text" id="p3x2" value="20">
+		<input type="text" id="p3y2" value="16"> 
 		<br/>
 
 		<input type="submit" value="Dijkstra Improved" id="launch">
@@ -42,45 +42,32 @@
 		<div id="timer"></div>
 	</form>
 </div>
-<div id="test_result"></div>
+<canvas id="canvas" width="1400" height="800"></canvas>
 
 <script type="text/javascript" src="array_utils.js"></script>
 <script type="text/javascript" src="ordered_stack.js"></script>
+<script type="text/javascript" src="tileset.js"></script>
+<script type="text/javascript" src="map.js"></script>
 <script type="text/javascript" src="graph.js"></script>
+
 <script type="text/javascript">
 
 	// Data values
 	var turn = 0;
-	var data = ["************************************************",
-                "*      *              *    11               A  *",
-                "* ** A  *   ********** *             *   *     *",
-                "* **    *      *     * * *******     *****     *",
-                "*  *    ****   * G*  *   GGG      *  *         *",
-                "*  *         *  * G*  *******     *  ******    *",
-                "*                GG* *      *     *       **   *",
-                "*****G********************  *  ********   *    *",
-                "*  GGGG  * GGGG   *         *         *   *  * *",
-                "* *** GG * G*G*****  ***    ******    *   *    *",
-                "*GGGGGG  * G*G*       *          *    *   **   *",
-                "* G****  *        *************  ******   *    *",
-                "* GGGGGGGGG *   P     GGGG   *           *     *",
-                "****** ******     **** GGGG   *      ********  *",
-                "*           *     *      GGG  *                *",
-                "*  ******   *        666                       *",
-                "*   *             P                     D      *",
-                "*    D      *              22                  *",
-                "************************************************"];
+
+	var ctx = document.getElementById('canvas').getContext("2d");
+
+	// Create default map
+	var map = new Map(ctx);
 
     // Create graph
-	var g = new Graph(data, true);
-	// Show the generated graph in 'test_result'
-	document.getElementById('test_result').appendChild(g.debugDraw());
+	var g = new Graph(map.terrain, true);
+
+	map.drawBackground();
+	g.debugDraw(null, map.tileset.tile_size);
 
 	document.getElementById("launch").onclick = function() {
 
-		var pawn1 = new Pawn("1");
-		var pawn3 = new Pawn("2");
-		var pawn2 = new Pawn("3");
 
 		var p1y1 = document.getElementById("p1x1").value;
 		var p1x1 = document.getElementById("p1y1").value;
@@ -106,18 +93,27 @@
 		var p3nodeA = g.getNodeAt(p3x1,p3y1);
 		var p3nodeB = g.getNodeAt(p3x2,p3y2);
 
+		var pawn1 = new Pawn("1", p1nodeA);
+		var pawn3 = new Pawn("2", p2nodeA);
+		var pawn2 = new Pawn("3", p3nodeA);
 
 		if(p1nodeA && p1nodeB && p2nodeB && p2nodeA && p3nodeB && p3nodeB) {
 			var start = new Date().getTime();
-			var p1path = g.dijkstraImproved(p1nodeA, p1nodeB, turn, pawn1);
-			var p2path = g.dijkstraImproved(p2nodeA, p2nodeB, turn, pawn2);
-			var p3path = g.dijkstraImproved(p3nodeA, p3nodeB, turn, pawn3);
+			var p1path = g.dijkstraImproved(pawn1.node, p1nodeB, turn, pawn1);
+			var p2path = g.dijkstraImproved(pawn2.node, p2nodeB, turn, pawn2);
+			var p3path = g.dijkstraImproved(pawn3.node, p3nodeB, turn, pawn3);
 			var time = new Date().getTime() - start;
 
 			document.getElementById('timer').innerHTML = '( in '+time+' ms)';
+			pawn1.updatePosition(p1path);
+			pawn2.updatePosition(p2path);
+			pawn3.updatePosition(p3path);
+			map.drawBackground();
+			g.debugDraw([ p1path, p2path, p3path], map.tileset.tile_size);
+			map.drawTileAt(ctx, "P", pawn1.node.y, pawn1.node.x);
+			map.drawTileAt(ctx, "P", pawn2.node.y, pawn2.node.x);
+			map.drawTileAt(ctx, "P", pawn3.node.y, pawn3.node.x);
 
-			document.getElementById('test_result').innerHTML = '';
-			document.getElementById('test_result').appendChild(g.debugDraw([ p1path, p2path, p3path ]));
 		} else {
 			alert("Error : no node could be selected");
 		}
