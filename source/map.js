@@ -30,36 +30,24 @@ Map.prototype.drawBackground = function() {
 		this.ctx.putImageData(this.background_image, 0, 0);
 	else 
 	{
+		console.log("Drawing started");
+		
 		// For each row
 		for(var i = 0; i < this.height; i++) 
 		{
 			// For each tile of this row
 			for(var j = 0; j < this.width; j++) 
 			{
-				// Draw the default ground for tiles that aren't background
-				// because they have transparency and so they expect something to be under them 
-				if (Tileset.isBackgroundTile(this.terrain[i][j]) == false)
-					this.drawTileAt(this.ctx, " ", j * this.tileset.tile_size, i * this.tileset.tile_size);
-				else
-					this.drawTileAt(this.ctx, this.terrain[i][j], j * this.tileset.tile_size, i * this.tileset.tile_size);
+				// Some tiles have transparency and so they need a background under them
+				if (Tileset.needBackgroundTile(this.terrain[i][j]) == true)
+					this.drawTileAt(this.ctx, " ", j , i );
+				
+				this.drawTileAt(this.ctx, this.terrain[i][j], j, i);
 			}
 		}
 
 		// Save the background to avoid redrawing it
 		this.background_image = this.ctx.getImageData(0, 0, this.width * this.tileset.tile_size, this.height * this.tileset.tile_size);
-	}
-};
-Map.prototype.drawForeground = function() {
-
-	// For each row
-	for(var i = 0; i < this.height; i++) 
-	{
-		// For each tile of this row
-		for(var j = 0; j < this.width; j++) 
-		{
-			if (Tileset.isBackgroundTile(this.terrain[i][j]) == false)
-				this.drawTileAt(this.ctx, this.terrain[i][j], j * this.tileset.tile_size, i * this.tileset.tile_size);
-		}
 	}
 };
 
@@ -73,15 +61,15 @@ Map.prototype.drawForeground = function() {
 Map.prototype.drawTileAt = function(ctx, tile_id, x, y) {
 	var tile_coords = this.tileset.tex_coords[tile_id];
 	if(tile_coords) {
-		ctx.drawImage(this.tileset.spritesheet,  // The spritesheet
-					  tile_coords.x,             // The x position  in the spritesheet
-					  tile_coords.y,             // The y position  "                "
-					  this.tileset.tile_size,    // The tile width  "                "
-					  this.tileset.tile_size,    // The tile height "                "
-					  x,                         // The x position  in the canvas
-					  y,                         // The y position  "           "
-					  this.tileset.tile_size,    // The tile width  "           "
-					  this.tileset.tile_size);   // The tile height "           "
+		ctx.drawImage(this.tileset.spritesheet,   // The spritesheet
+					  tile_coords.x,              // The x position  in the spritesheet
+					  tile_coords.y,              // The y position  "                "
+					  this.tileset.tile_size,     // The tile width  "                "
+					  this.tileset.tile_size,     // The tile height "                "
+					  x * this.tileset.tile_size, // The x position  in the canvas
+					  y * this.tileset.tile_size, // The y position  "           "
+					  this.tileset.tile_size,     // The tile width  "           "
+					  this.tileset.tile_size);    // The tile height "           "
 	}
 };
 
@@ -99,11 +87,11 @@ var default_map =
 	"* *** GG * G*G*****  ***    ******    *   *    *",
 	"*GGGGGG  * G*G*       *          *    *   **   *",
 	"* G****  *        *************  ******   *    *",
-	"* GGGGGGGGG *   P      GGGG  *           *     *",
+	"* GGGGGGGGG *          GGGG  *           *     *",
 	"****** ******     ****  GGGG  *      ********  *",
 	"*           *     *       GGG *                *",
 	"*  ******   *                                  *",
-	"*   *           P                       D      *",
+	"*   *                                   D      *",
 	"*    D      *                                  *",
 	"************************************************",
 ];

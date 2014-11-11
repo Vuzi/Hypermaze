@@ -34,11 +34,11 @@ Tileset = function(spritesheet_path) {
 	
 };
 
-Tileset.isBackgroundTile = function(tile_id) {
+Tileset.needBackgroundTile = function(tile_id) {
 	switch (tile_id) {
-	 	case " ":
-	 	case "*":
-	 	case "G":
+	 	case "D":
+	 	case "P":
+	 	case "A":
 	 	return true;
 	 default:
 	 	return false;
