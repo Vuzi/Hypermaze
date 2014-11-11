@@ -14,87 +14,74 @@
 <div id="controls">
 	<form>
 		From : 
-		<input type="text" id="x1">
-		<input type="text" id="y1"> 
+		<input type="text" id="x1" value="1">
+		<input type="text" id="y1" value="1">
 		To: 
-		<input type="text" id="x2">
-		<input type="text" id="y2"> 
+		<input type="text" id="x2" value="42">
+		<input type="text" id="y2" value="17"> 
 
 		<input type="submit" value="Dijkstra" id="launch">
-		<input type="radio" name="group1" id="x1"> x1
-		<input type="radio" name="group1" id="x500"> x500
-		<input type="radio" name="group1" id="x1000"> x1000
 
 		<div id="timer"></div>
 	</form>
 </div>
-<div id="test_result"></div>
+<canvas id="canvas" width="1400" height="800"></canvas>
 
 <script type="text/javascript" src="array_utils.js"></script>
 <script type="text/javascript" src="ordered_stack.js"></script>
 <script type="text/javascript" src="graph.js"></script>
+<script type="text/javascript" src="tileset.js"></script>
+<script type="text/javascript" src="map.js"></script>
 <script type="text/javascript">
 
-	// Data values
-	var data = ["************************************************",
-                "*      *              *    11               A  *",
-                "* ** A  *   ********** *             *   *     *",
-                "* **    *      *     * * *******     *****     *",
-                "*  *    ****   * G*  *   GGG      *  *         *",
-                "*  *         *  * G*  *******     *  ******    *",
-                "*                GG* *      *     *       **   *",
-                "*****G********************  *  ********   *    *",
-                "*  GGGG  * GGGG   *         *         *   *  * *",
-                "* *** GG * G*G*****  ***    ******    *   *    *",
-                "*GGGGGG  * G*G*       *          *    *   **   *",
-                "* G****  *        *************  ******   *    *",
-                "* GGGGGGGGG *   P     GGGG   *           *     *",
-                "****** ******     **** GGGG   *      ********  *",
-                "*           *     *      GGG  *                *",
-                "*  ******   *        666                       *",
-                "*   *             P                     D      *",
-                "*    D      *              22                  *",
-                "************************************************"];
+	var ctx = document.getElementById('canvas').getContext("2d");
+
+	var map = new Map(ctx);
 
     // Create graph
-	var g = new Graph(data, true);
-	// Show the generated graph in 'test_result'
-	document.getElementById('test_result').appendChild(g.debugDraw());
+	var g = new Graph(map.terrain, true);
 
-	document.getElementById("launch").onclick = function() {
-		var y1 = document.getElementById("x1").value;
-		var x1 = document.getElementById("y1").value;
+	map.drawBackground();
+
+	var mouse = undefined;
+
+	var step = function() {
+
+		if (mouse == undefined) {
+			var y1 = document.getElementById("x1").value;
+			var x1 = document.getElementById("y1").value;
+
+			var node = g.getNodeAt(x1,y1);
+			mouse = new Pawn(1, node);
+		}
 		var y2 = document.getElementById("x2").value;
 		var x2 = document.getElementById("y2").value;
-
-		var nodeA = g.getNodeAt(x1,y1);
 		var nodeB = g.getNodeAt(x2,y2);
 
-		var i = 1;
-
-		if(document.getElementById("x500").checked)
-			i = 500;
-		else if(document.getElementById("x1000").checked)
-			i = 1000;
-
-		if(nodeA && nodeB) {
+		if(mouse && nodeB) {
+			
 			var start = new Date().getTime();
-			for(; i > 0 ; i--) {
-				var path = g.dijkstra(nodeA, nodeB, 0);
-			}
-			console.log(path.getPath());
+			
+			var path = g.dijkstra(mouse.node, nodeB, 0);
+			
 			var time = new Date().getTime() - start;
-
+			
+			mouse.updatePosition(path);
+			
 			document.getElementById('timer').innerHTML = '( in '+time+' ms)';
+			map.drawBackground();
+			map.drawTileAt(ctx, "P", mouse.node.y, mouse.node.x);
 
-			document.getElementById('test_result').innerHTML = '';
-			document.getElementById('test_result').appendChild(g.debugDraw(path));
+			// g.debugDraw(path, map.tileset.tile_size);
+
 		} else {
 			alert("Error : no node could be selected");
 		}
 
 		return false;
 	};
+	setInterval(step, 100);
+	// document.getElementById("launch").onclick();
 
 </script>
 

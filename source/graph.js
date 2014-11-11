@@ -299,48 +299,42 @@ Graph.prototype.getEdgeByNodes = function(nodeA, nodeB) {
 };
 
 /**
- * Draw the view of the map in a canva, and
- * return the newly created canva.
- * @return {Canvas} The returned canvas
+ * Draw the view of the map
  */
-Graph.prototype.debugDraw = function(path) {
+Graph.prototype.debugDraw = function(path, tile_size) {
 
-	// Create the canva
-	var canvas = document.createElement('canvas');
-
-	canvas.id = "graphDebugCanva";
-	canvas.width = 4000;
-	canvas.height = 4000;
-
-	var ctx = canvas.getContext("2d");
+	var ctx = document.getElementById('canvas').getContext("2d");
+	
+	var half_size = tile_size / 2;
 
 	// Draw the edges
 	for (var i = this.edges.length - 1; i >= 0; i--) {
 		var edge = this.edges[i];
 
-		var x1 = edge.nodeA.y * 2 * 24 + 10;
-		var y1 = edge.nodeA.x * 2 * 24 + 10;
+		var x1 = edge.nodeA.y * tile_size + half_size;
+		var y1 = edge.nodeA.x * tile_size + half_size;
 
-		var x2 = edge.nodeB.y * 2 * 24 + 10;
-		var y2 = edge.nodeB.x * 2 * 24 + 10;
+		var x2 = edge.nodeB.y * tile_size + half_size;
+		var y2 = edge.nodeB.x * tile_size + half_size;
 
 		ctx.beginPath();
 		ctx.moveTo(x1, y1);
 		ctx.lineTo(x2, y2);
-		ctx.lineWidth = 5;
+		ctx.lineWidth = 2;
 		ctx.strokeStyle = '#333';
 		ctx.stroke();
+		ctx.closePath();
 	}
 
 	// Draw the nodes
 	for (var j = this.nodes.length - 1; j >= 0; j--) {
 		var node = this.nodes[j];
 
-		var x = node.y * 2 * 24;
-		var y = node.x * 2 * 24;
+		var x = node.y * tile_size + half_size;
+		var y = node.x * tile_size + half_size;
 
 		ctx.beginPath();
-		ctx.arc(x+11, y+11, 12, 0, 2*Math.PI, false);
+		ctx.arc(x, y, 10, 0, 2*Math.PI, false);
 
 		if(node.isSpawn())
 			ctx.fillStyle = 'lightblue';
@@ -359,22 +353,26 @@ Graph.prototype.debugDraw = function(path) {
 		ctx.lineWidth = 2;
 		ctx.strokeStyle = '#333';
 		ctx.stroke();
+		ctx.closePath();
+
+		ctx.beginPath();
 
 		ctx.fillStyle = 'black';
 		ctx.font = "12px Arial";
 
 		if(node.isSpawn())
-			ctx.fillText("S", x+8, y+15);
+			ctx.fillText("S", x-3, y+3);
 		else if(node.isExit())
-			ctx.fillText("E", x+8, y+15);
+			ctx.fillText("E", x-3, y+3);
 		else if(node.isCheckpoint())
-			ctx.fillText("C"+node.checkpoint, x+3, y+15);
+			ctx.fillText("C"+node.checkpoint, x-3, y+3);
 		else
-			ctx.fillText(node.value, x+8, y+15);
+			ctx.fillText(node.value, x-3, y+3);
 
-		ctx.fillStyle = 'black';
-		ctx.font = "10px Arial";
-		ctx.fillText(node.y+"-"+node.x, x+22, y+25);
+		// ctx.fillStyle = 'white';
+		// ctx.font = "10px Arial";
+		// ctx.fillText(node.y+"-"+node.x, x-6, y+10);
+		ctx.closePath();
 	}
 
 	// Draw the path
@@ -401,29 +399,29 @@ Graph.prototype.debugDraw = function(path) {
 					var elem = paths[k];
 					
 					if(elem instanceof Node) {
-						var x = elem.y * 2 * 24;
-						var y = elem.x * 2 * 24;
+						var x = elem.y * tile_size + half_size;
+						var y = elem.x * tile_size + half_size;
 
 						ctx.beginPath();
-						ctx.arc(x+11+(l*3), y+11+(l*3), 12, 0, 2*Math.PI, false);
+						ctx.arc(x+(l*1), y+(l*1), 10, 0, 2*Math.PI, false);
 						if(k == 2) {
 							ctx.fillStyle = color;
 							ctx.fill();
 						}
-						ctx.lineWidth = 4;
+						ctx.lineWidth = 2;
 						ctx.strokeStyle = color;
 						ctx.stroke();
 					} else if(elem instanceof Edge) {
-						var x1 = elem.nodeA.y * 2 * 24 + 10;
-						var y1 = elem.nodeA.x * 2 * 24 + 10;
+						var x1 = elem.nodeA.y * tile_size + half_size;
+						var y1 = elem.nodeA.x * tile_size + half_size;
 
-						var x2 = elem.nodeB.y * 2 * 24 + 10;
-						var y2 = elem.nodeB.x * 2 * 24 + 10;
+						var x2 = elem.nodeB.y * tile_size + half_size;
+						var y2 = elem.nodeB.x * tile_size + half_size;
 
 						ctx.beginPath();
-						ctx.moveTo(x1+(l*3), y1+(l*3));
-						ctx.lineTo(x2+(l*3), y2+(l*3));
-						ctx.lineWidth = 5;
+						ctx.moveTo(x1+(l*1), y1+(l*1));
+						ctx.lineTo(x2+(l*1), y2+(l*1));
+						ctx.lineWidth = 2;
 						ctx.strokeStyle = color;
 						ctx.stroke();
 					}
@@ -431,8 +429,6 @@ Graph.prototype.debugDraw = function(path) {
 			}
 		}
 	}
-
-	return canvas;
 };
 
 /**
