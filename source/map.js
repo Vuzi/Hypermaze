@@ -20,18 +20,45 @@ Map = function(context, terrain, tileset) {
 		this.tileset = tileset;
 
 	this.height = this.terrain.length;
-	this.length = this.terrain[0].length;
+	this.width = this.terrain[0].length;
 };
 
-Map.prototype.draw = function() {
+Map.prototype.drawBackground = function() {
+
+	// Draw the cached background if available
+	if (this.background_image)
+		this.ctx.putImageData(this.background_image, 0, 0);
+	else 
+	{
+		// For each row
+		for(var i = 0; i < this.height; i++) 
+		{
+			// For each tile of this row
+			for(var j = 0; j < this.width; j++) 
+			{
+				// Draw the default ground for tiles that aren't background
+				// because they have transparency and so they expect something to be under them 
+				if (Tileset.isBackgroundTile(this.terrain[i][j]) == false)
+					this.drawTileAt(this.ctx, " ", j * this.tileset.tile_size, i * this.tileset.tile_size);
+				else
+					this.drawTileAt(this.ctx, this.terrain[i][j], j * this.tileset.tile_size, i * this.tileset.tile_size);
+			}
+		}
+
+		// Save the background to avoid redrawing it
+		this.background_image = this.ctx.getImageData(0, 0, this.width * this.tileset.tile_size, this.height * this.tileset.tile_size);
+	}
+};
+Map.prototype.drawForeground = function() {
 
 	// For each row
 	for(var i = 0; i < this.height; i++) 
 	{
 		// For each tile of this row
-		for(var j = 0; j < this.length; j++) 
+		for(var j = 0; j < this.width; j++) 
 		{
-			this.drawTileAt(this.ctx, this.terrain[i][j], j * this.tileset.tile_size, i * this.tileset.tile_size);
+			if (Tileset.isBackgroundTile(this.terrain[i][j]) == false)
+				this.drawTileAt(this.ctx, this.terrain[i][j], j * this.tileset.tile_size, i * this.tileset.tile_size);
 		}
 	}
 };

@@ -33,3 +33,14 @@ Tileset = function(spritesheet_path) {
 	};
 	
 };
+
+Tileset.isBackgroundTile = function(tile_id) {
+	switch (tile_id) {
+	 	case " ":
+	 	case "*":
+	 	case "G":
+	 	return true;
+	 default:
+	 	return false;
+	 }
+}
