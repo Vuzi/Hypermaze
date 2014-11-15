@@ -1,24 +1,24 @@
 /**
- * Contains a sprite sheet and the coordinates of each individual sprite
- * If no spritesheet is specified, it loads a default one
- * @param {String} spritesheet_path [description]
+ * Contains a sprite sheet and the coordinates of each individual sprite.
+ * If no spritesheet is specified, it loads a default one.
+ * @param {String} spritesheet_path Path to the image.
+ * @param {number} tile_size        The size of a (square) tile.
  */
-Tileset = function(spritesheet_path) {
+Tileset = function(spritesheet, tile_size, correspondence_map) {
 
-	this.spritesheet = new Image();
+	this.spritesheet = spritesheet;
+	this.tile_size = tile_size;
+	this.correspondence_map = correspondence_map;
 
+	/*
 	if (spritesheet_path === undefined) {
-		this.spritesheet.src = "default_tileset.png";
-		this.tile_size = 26; 
+		this.spritesheet_path = "default_tileset.png";
+		this.tile_size = 26; // Hardcoded because _we_ create the spritesheets
 	}
 	else {
-		this.spritesheet.src = spritesheet_path;
-		this.tile_size = 50; // Hardcoded because _we_ create the spritesheets
+		this.spritesheet_path = spritesheet_path;
+		this.tile_size = tile_size;
 	}
-	
-	this.spritesheet.onload = function() {
-		console.log("Tileset ["+this.src+"] loaded");
-	};
 	
 	var size = this.tile_size;
 	// The first 6 coordinates respect the default spritesheet
@@ -30,10 +30,15 @@ Tileset = function(spritesheet_path) {
 		"D": {x: 0 * size, y: 3 * size},
 		"P": {x: 0 * size, y: 4 * size},
 		"A": {x: 0 * size, y: 5 * size},
-	};
+	};*/
 	
 };
 
+/**
+ * Check if a tile need a background.
+ * @param  {String} tile_id The id of the tile.
+ * @return {Boolean}        True if the tile needs a background, otherwise false.
+ */
 Tileset.needBackgroundTile = function(tile_id) {
 	switch (tile_id) {
 	 	case "D":
@@ -43,4 +48,4 @@ Tileset.needBackgroundTile = function(tile_id) {
 	 default:
 	 	return false;
 	 }
-}
+};

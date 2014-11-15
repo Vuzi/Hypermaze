@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test loader image</title>
+</head>
+<body>
+<div id="test"> Loading.. </div>
+
+<script type="text/javascript" src="image_loader.js"></script>
+<script type="text/javascript">
+	
+	var image1 = "http://i.imgur.com/MuA0OtB.jpg";
+	var image2 = "http://i.imgur.com/QszSHMZ.gif";
+	var image3 = "http://i.imgur.com/n5sAGx1.jpg";
+
+	var loader = new ImageLoader([ image1, image2, image3 ]);
+	loader.onload = function(images) {
+		document.getElementById('test').innerHTML = '';
+		for(var key in images) {
+			document.getElementById('test').appendChild(images[key]);
+		}
+	}
+	loader.load();
+</script>
+
+</body>
+</html>

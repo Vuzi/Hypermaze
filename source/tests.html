@@ -36,52 +36,50 @@
 
 	var ctx = document.getElementById('canvas').getContext("2d");
 
-	var map = new Map(ctx);
+	// Load the tileset
+	var t = new Tileset();
+	t.onload = function() {
 
-    // Create graph
-	var g = new Graph(map.terrain, true);
+		var m = new Map(ctx, Map.prototype.default_map, t);
+		var g = new Graph(m.terrain, true);
 
-	map.drawBackground();
+		// Draw the background
+		m.drawBackground();
 
-	var mouse = undefined;
-
-	var step = function() {
-
-		if (mouse == undefined) {
+		// Launch on the click
+		document.getElementById('launch').onclick = function() {
 			var y1 = document.getElementById("x1").value;
 			var x1 = document.getElementById("y1").value;
 
-			var node = g.getNodeAt(x1,y1);
-			mouse = new Pawn(1, node);
-		}
-		var y2 = document.getElementById("x2").value;
-		var x2 = document.getElementById("y2").value;
-		var nodeB = g.getNodeAt(x2,y2);
+			var nodeA = g.getNodeAt(x1,y1);
 
-		if(mouse && nodeB) {
-			
-			var start = new Date().getTime();
-			
-			var path = g.dijkstra(mouse.node, nodeB, 0);
-			
-			var time = new Date().getTime() - start;
-			
-			mouse.updatePosition(path);
-			
-			document.getElementById('timer').innerHTML = '( in '+time+' ms)';
-			map.drawBackground();
-			map.drawTileAt(ctx, "P", mouse.node.y, mouse.node.x);
+			var y2 = document.getElementById("x2").value;
+			var x2 = document.getElementById("y2").value;
 
-			// g.debugDraw(path, map.tileset.tile_size);
+			var nodeB = g.getNodeAt(x2,y2);
 
-		} else {
-			alert("Error : no node could be selected");
-		}
+			if(nodeA && nodeB) {
+				var pawn = new Pawn(1, nodeA);
 
-		return false;
+				setInterval(function() {
+					var path = g.dijkstra(pawn.node, nodeB, 0);
+					pawn.updatePosition(path);
+					
+					m.drawBackground();
+					g.debugDraw(path, 26);
+
+					// Draw the background & the pawn
+					m.drawTileAt(ctx, "P", pawn.node.y, pawn.node.x);
+				}, 100);
+
+			} else {
+				alert("Error : no node could be selected");
+			}
+
+			return false;
+		};
 	};
-	setInterval(step, 100);
-	// document.getElementById("launch").onclick();
+	t.load();
 
 </script>
 

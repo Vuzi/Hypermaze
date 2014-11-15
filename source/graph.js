@@ -432,12 +432,10 @@ Graph.prototype.debugDraw = function(path, tile_size) {
 };
 
 /**
- * Compute the shortest path between start
- * and dest using the dijkstra algorithm. If
- * dest is 0/false then, the path will be computed to
- * find the nearest exit.
+ * Compute the shortest path between start and dest using the dijkstra algorithm.
  * This version doesn't take the computed path of other pawn
  * in the graph and can give non-logical results for humans.
+ * 
  * @param  {Node} start   The start node.
  * @param  {number} dest  The checkpoint value, or 0/false for the exit.
  * @return {Path}         The list of edges and nodes taken.
@@ -478,10 +476,8 @@ Graph.prototype.dijkstra = function(start, dest) {
 
 
 /**
- * Compute the shortest path between start
- * and dest using the dijkstra algorithm. If
- * dest is 0/false then, the path will be computed to
- * find the nearest exit.
+ * Compute the shortest path between start and dest using the dijkstra algorithm.
+ * 
  * @param  {Node} start   The start node.
  * @param  {number} dest  The checkpoint value, or 0/false for the exit
  * @param  {number} turn  The actual turn number
@@ -532,8 +528,11 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 	return path;
 };
 
+// ==================================================================
+
 /**
  * Path result, stocked as a linked list.
+ * @param {Path} source The previous path
  */
 Path = function(source) {
 	this.value = source.value;
@@ -580,6 +579,8 @@ Path.prototype.getPath = function() {
 
 	return paths;
 };
+
+// ==================================================================
 
 /**
  * Element walking on the graph.

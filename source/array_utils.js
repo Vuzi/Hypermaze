@@ -27,3 +27,7 @@ Array.prototype.empty = function() {
 Array.prototype.remove = function(i) {
 	return this.splice(i, 1);
 }
+
+Array.prototype.random = function() {
+	return this[~~(Math.random()*this.length)];
+}

@@ -28,140 +28,226 @@
 		<span id="timer"></span>
 	</form>
 </div>
-<canvas id="canvas" width="1400" height="800"></canvas>
+<canvas id="canvas" width="4000" height="4000"></canvas>
 
 <script type="text/javascript" src="array_utils.js"></script>
+<script type="text/javascript" src="image_loader.js"></script>
 <script type="text/javascript" src="ordered_stack.js"></script>
 <script type="text/javascript" src="tileset.js"></script>
+<script type="text/javascript" src="pawns_handler.js"></script>
 <script type="text/javascript" src="map.js"></script>
 <script type="text/javascript" src="graph.js"></script>
 
 <script type="text/javascript">
 
-	// Data values
-	var pawns = [];
-	var dests = [];
+	// Load images
+	var map_stylesheet = "floor.png";
+	var car_stylesheet = "characters.png";
 
-	var ctx = document.getElementById('canvas').getContext("2d");
+	var loader = new ImageLoader([ map_stylesheet, car_stylesheet ]);
+	loader.onload = function(images) {
 
-	// Create default map
-	var map = new Map(ctx);
+		// Context
+		var ctx = document.getElementById('canvas').getContext("2d");
 
-    // Create graph
-	var g = new Graph(map.terrain, true);
+		// Map values
+		var map_raw = 
+		   ["************************************************",
+			"*      *              *                    A   *",
+			"* ** A  *   ********** *             *   *     *",
+			"* **    *     *      * * *******     *****     *",
+			"*  *    ****  * G*   *   GGG      *  *         *",
+			"*  *        *  * G*   *******     *  ******    *",
+			"*               GG* *       *     *       **   *",
+			"*****G********************  *  ********   *    *",
+			"*  GGGG  * GGGG   *         *         *   *  * *",
+			"* *** GG * G*G*****  ***    ******    *   *    *",
+			"*GGGGGG  * G*G*       *          *    *   **   *",
+			"* G****  *        *************  ******   *    *",
+			"* GGGGGGGGG *          GGGG  *           *     *",
+			"****** ******     ****  GGGG  *      ********  *",
+			"*           *     *       GGG *                *",
+			"*  ******   *                                  *",
+			"*   *                                   D      *",
+			"*    D      *                                  *",
+			"************************************************"];
+		var coords = {
+			" "  : [ { x : 0, y : 128}, { x : 64, y : 128 }, { x : 128, y : 128 }, { x : 192, y : 128 }, { x : 256, y : 128 }  ], 
+			"*"  : {x: 448, y: 0 },
+			"*0" : {x: 448, y: 0 },
+			"*1" : {x: 256, y: 0 },
+			"*2" : {x: 128, y: 0 },
+			"*3" : {x: 0  , y: 64},
+			"*4" : {x: 64 , y: 0 },
+			"*5" : {x: 384, y: 0 },
+			"*6" : {x: 128, y: 64},
+			"*7" : {x: 448, y: 64},
+			"*8" : {x: 192, y: 0 },
+			"*9" : {x: 64 , y: 64},
+			"*10": {x: 320, y: 0 },
+			"*11": {x: 256, y: 64},
+			"*12": {x: 192, y: 64},
+			"*13": {x: 320, y: 64},
+			"*14": {x: 384, y: 64},
+			"*15": {x: 0  , y: 0 },
+			"G"  : {x: 0  , y: 192},
+			"D"  : {x: 64 , y: 192},
+			"P"  : {x: 128, y: 192},
+			"A"  : {x: 192, y: 192},
+		};
+		var tileset = new Tileset(loader.get("floor.png"), 64, coords);
 
-	map.drawBackground();
-	// Show the generated graph
-	g.debugDraw(null, map.tileset.tile_size);
+		// Caracter values
+		var male_heads = [ { x : 0 , y : 0 }, { x : 32, y : 0 }, { x : 64, y : 0 },
+		                   { x : 0 , y : 32}, { x : 32, y : 32}, { x : 64, y : 32}, 
+		                   { x : 0 , y : 64}, { x : 32, y : 64},
+		                   { x : 0 , y : 96}, { x : 32, y : 96},
+		                   { x : 0 , y :128}, { x : 32, y :128}, { x : 64, y :128}, 
+		                   { x : 0 , y :128}, { x : 32, y :128}, { x : 64, y :128}, 
+		                   { x : 0 , y :161}, { x : 32, y :161}, { x : 64, y :161}, 
+		                   { x : 0 , y :192}, { x : 32, y :192}, { x : 64, y :192}, 
+		                   { x : 0 , y :224}, { x : 32, y :224}, { x : 64, y :224}, 
+		                   { x : 0 , y :256}, { x : 32, y :256}, { x : 64, y :224}
+		                   ];
 
-	document.getElementById("add").onclick = function() {
-		// Get the values
-		var x1 = document.getElementById("y1").value;
-		var y1 = document.getElementById("x1").value;
+		var male_bodies = [ { x : 128, y : 0  }, {x : 192, y : 0  },
+							{ x : 128, y : 64 }, {x : 192, y : 64 },
+							{ x : 128, y : 128}, {x : 192, y : 128},
+							{ x : 128, y : 192}, {x : 192, y : 192},
+							{ x : 128, y : 256}, {x : 192, y : 256},
+							{ x : 128, y : 320}
+							];
 
-		var x2 = document.getElementById("y2").value;
-		var y2 = document.getElementById("x2").value;
+		var female_heads = [ { x : 64 , y : 64 }, { x : 64 , y : 96 }, { x : 64 , y : 128},
+							 { x : 64 , y : 288}, { x : 64 , y : 319}, { x : 64 , y : 351},
+							 { x : 32 , y : 415}, { x : 32 , y : 446}, { x : 32 , y : 477}
+							 ];
 
-		var nodeA = g.getNodeAt(x1, y1);
-		var nodeB = g.getNodeAt(x2, y2);
+		var female_bodies = [ { x : 192, y : 64 }, { x : 192, y : 192}, { x : 192, y : 319},
+		                      { x : 254, y : 319}
+		                      ];
+		var caracters = new PawnsHandler(ctx, loader.get("characters.png"), male_heads, female_heads, male_bodies, female_bodies, 32, 64);
 
-		// If nodes selectable
-		if(nodeA && nodeB) {
-			document.getElementById("y1").value = "";
-			document.getElementById("x1").value = "";
+		// Create default map
+		var map = new Map(ctx, map_raw, tileset);
+		map.drawBackground();
 
-			document.getElementById("y2").value = "";
-			document.getElementById("x2").value = "";
+	    // Create graph
+		var g = new Graph(map_raw, true);
 
-			// Add to the pawn list
-			pawns.push(new Pawn(""+pawns.length, nodeA));
-			dests.push(nodeB);
-			document.getElementById("pawn_nb").innerHTML = pawns.length;
-		} else {
-			alert("Error : no node could be selected");
-		}
+		// Running data
+		var pawns = [];
+		var dests = [];
 
-		return false;
-	};
+		// Show the generated graph
+		//g.debugDraw(null, tileset.tile_size);
 
-	document.getElementById("launch").onclick = function() {
+		document.getElementById("add").onclick = function() {
+			// Get the values
+			var x1 = document.getElementById("y1").value;
+			var y1 = document.getElementById("x1").value;
 
-		if(pawns.length > 0) {
-			main(pawns, g, dests);
-		} else {
-			alert("Error : no pawns added");
-		}
+			var x2 = document.getElementById("y2").value;
+			var y2 = document.getElementById("x2").value;
 
-		return false;
-	};
+			var nodeA = g.getNodeAt(x1, y1);
+			var nodeB = g.getNodeAt(x2, y2);
 
+			// If nodes selectable
+			if(nodeA && nodeB) {
+				document.getElementById("y1").value = "";
+				document.getElementById("x1").value = "";
 
-	/**
-	 * Main debug function. The goal is here to check the behaviour
-	 * of several pawns in the map.
-	 * @param  {Array} pawns Array of pawns.
-	 * @param  {Graph} graph The grap used
-	 * @param  {Array} dests Array of nodes used for destinations.
-	 */
-	function main(pawns, graph, dests) {
-		var time = 0;
+				document.getElementById("y2").value = "";
+				document.getElementById("x2").value = "";
 
-		document.getElementById("launch").value = "Next turn ("+time+")";
-		document.getElementById("launch").onclick = function() {
-			// Change turn id
-			document.getElementById("launch").value = "Next turn ("+time+")";
-
-			// Update turn
-			var start = new Date().getTime();
-			var results = turn(time, pawns, graph, dests);
-			time++;
-			var timer = new Date().getTime() - start;
-
-			// Redraw the map & infos
-			document.getElementById('timer').innerHTML = '( in '+timer+' ms)';
-			map.drawBackground();
-
-			g.debugDraw(results, map.tileset.tile_size);
-			
-			for (var i = 0; i < pawns.length; i++)
-				map.drawTileAt(ctx, "P", pawns[i].node.y, pawns[i].node.x);
+				// Add to the pawn list
+				pawns.push(new Pawn(""+pawns.length, nodeA));
+				dests.push(nodeB);
+				document.getElementById("pawn_nb").innerHTML = pawns.length;
+			} else {
+				alert("Error : no node could be selected");
+			}
 
 			return false;
 		};
-	}
 
-	/**
-	 * Turn function, called by the main function for each turn.
-	 * @param  {number} time The actual turn time.
-	 * @param  {Array} pawns Array of pawns.
-	 * @param  {Graph} graph The grap used.
-	 * @param  {Array} dests Array of nodes used for destinations.
-	 */
-	function turn(time, pawns, graph, dests) {
+		document.getElementById("launch").onclick = function() {
 
-		console.log("eval turn "+time);
-
-		var results = [];
-
-		// For each pawns
-		for(var i = 0; i < pawns.length; i++) {
-			var pawn = pawns[i];
-			var dest = dests[i];
-
-			// Get the path
-			var result = g.dijkstraImproved(pawn.node, dest, time, pawn);
-			results.push(result);
-
-			console.log(result.getPath());
-
-			// If not bloqued, update the position
-			if(result) {
-				pawn.updatePosition(result);
+			if(pawns.length > 0) {
+				main(pawns, g, dests);
+			} else {
+				alert("Error : no pawns added");
 			}
+
+			return false;
+		};
+
+
+		/**
+		 * Main debug function. The goal is here to check the behaviour
+		 * of several pawns in the map.
+		 * @param  {Array} pawns Array of pawns.
+		 * @param  {Graph} graph The grap used
+		 * @param  {Array} dests Array of nodes used for destinations.
+		 */
+		function main(pawns, graph, dests) {
+			var time = 0;
+
+			document.getElementById("launch").value = "Next turn ("+time+")";
+			document.getElementById("launch").onclick = function() {
+				// Change turn id
+				document.getElementById("launch").value = "Next turn ("+time+")";
+
+				// Update turn
+				var start = new Date().getTime();
+				var results = turn(time, pawns, graph, dests);
+				time++;
+				var timer = new Date().getTime() - start;
+
+				// Redraw the map & infos
+				document.getElementById('timer').innerHTML = '( in '+timer+' ms)';
+				map.drawBackground();
+
+				g.debugDraw(results, /*map.tileset.tile_size*/64);
+				
+				for (var i = 0; i < pawns.length; i++)
+					caracters.draw(pawns[i], tileset, ctx);
+
+				return false;
+			};
 		}
 
-		return results;
-	}
+		/**
+		 * Turn function, called by the main function for each turn.
+		 * @param  {number} time The actual turn time.
+		 * @param  {Array} pawns Array of pawns.
+		 * @param  {Graph} graph The grap used.
+		 * @param  {Array} dests Array of nodes used for destinations.
+		 */
+		function turn(time, pawns, graph, dests) {
+			var results = [];
+
+			// For each pawns
+			for(var i = 0; i < pawns.length; i++) {
+				var pawn = pawns[i];
+				var dest = dests[i];
+
+				// Get the path
+				var result = g.dijkstraImproved(pawn.node, dest, time, pawn);
+				results.push(result);
+
+				// If not bloqued, update the position
+				if(result) {
+					pawn.updatePosition(result);
+				}
+			}
+
+			return results;
+		}
+	};
+
+	loader.load();
 
 </script>
 
