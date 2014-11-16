@@ -171,10 +171,13 @@ Edge.prototype.equals = function(edge) {
  * @param {boolean} avoid_corner If true, avoid corners path when creating the graph.
  */
 Graph = function(data, avoid_corner) {
+	// All the edges and nodes
 	this.edges = [];
 	this.nodes = [];
 
+	// Special nodes (also referenced in the nodes array)
 	this.spawns = [];
+	this.exits = [];
 	this.checkpoints = [];
 
 	this.init(data, (typeof avoid_corner !== 'undefined' ? avoid_corner : true));
@@ -211,7 +214,7 @@ Graph.prototype.node_definitions = {
 
 /**
  * Initialise the graph with the given data.
- * @param {Array} data An array of strings, representing the maze.
+ * @param {Array} data           An array of strings, representing the maze.
  * @param {boolean} avoid_corner If true, avoid corners path when creating the graph.
  */
 Graph.prototype.init = function(data, avoid_corner) {
@@ -221,7 +224,18 @@ Graph.prototype.init = function(data, avoid_corner) {
 			var tmp = this.node_definitions[data[i][j]];
 
 			if(tmp) {
-				this.nodes.push(new Node(tmp[0], i, j, tmp[1], tmp[2], tmp[3]));
+				var new_node = new Node(tmp[0], i, j, tmp[1], tmp[2], tmp[3]);
+
+				if(new_node.isSpawn())
+					this.spawns.push(new_node);
+
+				if(new_node.isExit())
+					this.exits.push(new_node);
+
+				if(new_node.isCheckpoint())
+					this.checkpoints.push(new_node);
+
+				this.nodes.push(new_node);
 			}
 		}
 	}
@@ -590,12 +604,15 @@ Path.prototype.getPath = function() {
 
 /**
  * Element walking on the graph.
- * @param {string} id The id of the pawn.
+ * @param {String} id          The id of the pawn.
+ * @param {Node} node          The node where the pawn is actually in.
+ * @param {Object} checkpoints Object with checkpoint id that the pawn need to pass by.
  */
-Pawn = function(id, node) {
+Pawn = function(id, node, checkpoints) {
 	this.id = id;
 	this.node = node;
 	this.time_to_wait = 0;
+	this.checkpoints = checkpoints;
 };
 
 /**
