@@ -595,6 +595,7 @@ Path.prototype.getPath = function() {
 Pawn = function(id, node) {
 	this.id = id;
 	this.node = node;
+	this.time_to_wait = 0;
 };
 
 /**
@@ -606,6 +607,7 @@ Pawn.prototype.setPosition = function(node) {
 		this.node.pawn = null;
 	this.node = node;
 	node.pawn = this;
+	this.time_to_wait = node.value;
 };
 
 /**

@@ -1,0 +1,40 @@
+Spec du projet Hypermaze v1.0
+------------------------------------------------------------
+
+Description :
+
+Simulateur de "foule" dans un hypermarché. Un hypermarché se composé d'une ou plusieurs entrées, d'une ou plusieurs caisses et de plusieurs rayons.
+Chaque client apparaitra à une des entrées avec une liste de courses à effectuer. Il ira de rayon en rayon, puis une fois sa liste complété en caisse
+pour tout régler. Certaines cases entraineront un ralentissement de déplacément, soit simplement sur la case (par exemple, du carrelage abimé), soit
+par effet de zone.
+
+Style graphique :
+
+Style proche de prison architect : humain représenté par des sphéres sur des bustes simplifiés (rectangle, triangle, etc... suivant le type de personne).
+De même pour les rayons ou les éléments du magasin.
+
+Technos :
+
+Javascript/HTML 5/CSS 3 pour l'enssemble du projet, avec utilisation des canvas pour la partie graphique. Il devra être possible de soit charger une map à
+partir d'un fichier texte, soit au minimum d'avoir un éditeur de map. Il devra être possible de configurer les différents paramètres de la simulation
+et de la relancer librement.
+
+
+
+Client ->
+	Liste Article
+	Autres infos ?
+
+Map ->
+	Liste de noeuds
+
+Noeud ->
+	Vitesse déplacement (1..n)
+	Position map (x,y)
+	Article
+	Noeuds reliés []
+
+Article ->
+	Type
+	Prix
+	Description

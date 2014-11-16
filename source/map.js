@@ -19,6 +19,16 @@ Map = function(context, terrain, tileset) {
 };
 
 /**
+ * Get node coordonates from x and y pixel position on the map.
+ * @param  {number} x X position in pixels.
+ * @param  {number} y Y position in pixels.
+ * @return {Object}   The X and Y of the node in the grap.
+ */
+Map.prototype.getCoords = function(x, y) {
+	return { x : ~~(x / this.tileset.tile_size), y : ~~(y / this.tileset.tile_size)};
+};
+
+/**
  * Return the width of the displayed map in pixel.
  * @return {number} The width in pixel of the map.
  */

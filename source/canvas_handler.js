@@ -73,7 +73,7 @@ CanvasHandler.prototype.initEvents = function() {
 
 	canvas.onclick = function(e) {
 		if(this.onclick)
-			this.onclick(e.offsetX - this.x, e.offsetY - this.y, e);
+			this.onclick((e.offsetX - this.x) * this.zoom, (e.offsetY - this.y, e) * this.zoom, e);
 	};
 };
 
