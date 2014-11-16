@@ -27,6 +27,9 @@ CanvasHandler = function(canvas, content) {
 	this.initEvents();
 };
 
+/**
+ * Init the event handlers.
+ */
 CanvasHandler.prototype.initEvents = function() {
 	var me = this;
 
@@ -71,17 +74,35 @@ CanvasHandler.prototype.initEvents = function() {
 	canvas.onclick = function(e) {
 		if(this.onclick)
 			this.onclick(e.offsetX - this.x, e.offsetY - this.y, e);
-	}
+	};
 };
 
+/**
+ * Zoom in the content image.
+ * @param  {number} val The new zoom value. If > 1, will be set back to 1.
+ * @param  {number} x   The x position for the zoom center.
+ * @param  {number} y   The y position for the zoom center.
+ */
 CanvasHandler.prototype.zoomIn = function(val, x, y) {
 	this.zoomChange(this.zoom + (val || 0.05), x, y);
 };
 
+/**
+ * Zoom out in the content image.
+ * @param  {number} val The new zoom value. If > 1, will be set back to 1.
+ * @param  {number} x   The x position for the zoom center.
+ * @param  {number} y   The y position for the zoom center.
+ */
 CanvasHandler.prototype.zoomOut = function(val, x, y) {
 	this.zoomChange(this.zoom - (val || 0.05), x, y);
 };
 
+/**
+ * Update the zoom value.
+ * @param  {number} val The new zoom value. If > 1, will be set back to 1.
+ * @param  {number} x   The x position for the zoom center.
+ * @param  {number} y   The y position for the zoom center.
+ */
 CanvasHandler.prototype.zoomChange = function(val, x, y) {
 
 	if(val > 1)
@@ -106,6 +127,9 @@ CanvasHandler.prototype.zoomChange = function(val, x, y) {
 	this.updateDisplay();
 };
 
+/**
+ * Reset the zoom and the position to the default values.
+ */
 CanvasHandler.prototype.reset = function() {
 	
 	// Zoom
@@ -137,8 +161,10 @@ CanvasHandler.prototype.reset = function() {
 	this.y = (this.canvas.height - (this.content.height * this.zoom)) / 2;
 };
 
-
-
+/**
+ * Update the display canvas.
+ * @param  {boolean} force If true, force the redraw of the image and ignore cached image (if any).
+ */
 CanvasHandler.prototype.updateDisplay = function(force) {
 	this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
 

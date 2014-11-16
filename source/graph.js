@@ -35,6 +35,12 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
 	this.prevision_path[prevision_turn] = pawn;
 };
 
+/**
+ * Test if a node is empty at a given turn.
+ * @param  {number}  turn           The actual turn.
+ * @param  {number}  prevision_turn The turn to test.
+ * @return {Boolean}                True if the node is empty, false otherwise.
+ */
 Node.prototype.isEmpty = function(turn, prevision_turn) {
 
 	// Test if empty at the current moment
@@ -305,15 +311,17 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 	
 	var half_size = tile_size / 2;
 
+	var x, y, x1, y1, x2, y2;
+
 	// Draw the edges
 	for (var i = this.edges.length - 1; i >= 0; i--) {
 		var edge = this.edges[i];
 
-		var x1 = edge.nodeA.y * tile_size + half_size;
-		var y1 = edge.nodeA.x * tile_size + half_size;
+		x1 = edge.nodeA.y * tile_size + half_size;
+		y1 = edge.nodeA.x * tile_size + half_size;
 
-		var x2 = edge.nodeB.y * tile_size + half_size;
-		var y2 = edge.nodeB.x * tile_size + half_size;
+		x2 = edge.nodeB.y * tile_size + half_size;
+		y2 = edge.nodeB.x * tile_size + half_size;
 
 		ctx.beginPath();
 		ctx.moveTo(x1, y1);
@@ -328,8 +336,8 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 	for (var j = this.nodes.length - 1; j >= 0; j--) {
 		var node = this.nodes[j];
 
-		var x = node.y * tile_size + half_size;
-		var y = node.x * tile_size + half_size;
+		x = node.y * tile_size + half_size;
+		y = node.x * tile_size + half_size;
 
 		ctx.beginPath();
 		ctx.arc(x, y, 10, 0, 2*Math.PI, false);
@@ -384,7 +392,7 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 				var paths = path[l].getPath();
 				var color;
 
-				if(l == 0)
+				if(l === 0)
 					color = 'red';
 				else if(l == 1)
 					color = 'green';
@@ -397,8 +405,8 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 					var elem = paths[k];
 					
 					if(elem instanceof Node) {
-						var x = elem.y * tile_size + half_size;
-						var y = elem.x * tile_size + half_size;
+						x = elem.y * tile_size + half_size;
+						y = elem.x * tile_size + half_size;
 
 						ctx.beginPath();
 						ctx.arc(x+(l*1), y+(l*1), 10, 0, 2*Math.PI, false);
@@ -410,11 +418,11 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 						ctx.strokeStyle = color;
 						ctx.stroke();
 					} else if(elem instanceof Edge) {
-						var x1 = elem.nodeA.y * tile_size + half_size;
-						var y1 = elem.nodeA.x * tile_size + half_size;
+						x1 = elem.nodeA.y * tile_size + half_size;
+						y1 = elem.nodeA.x * tile_size + half_size;
 
-						var x2 = elem.nodeB.y * tile_size + half_size;
-						var y2 = elem.nodeB.x * tile_size + half_size;
+						x2 = elem.nodeB.y * tile_size + half_size;
+						y2 = elem.nodeB.x * tile_size + half_size;
 
 						ctx.beginPath();
 						ctx.moveTo(x1+(l*1), y1+(l*1));
@@ -511,9 +519,9 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 	}
 
 	// Found a path, now note it the graph
-	var path = stack.pop();
-	if(path) {
-		var nodes = path.getPath();
+	var path_to_note = stack.pop();
+	if(path_to_note) {
+		var nodes = path_to_note.getPath();
 
 		for(var j = 0, k = 0; j < nodes.length; j++) {
 			if(nodes[j] instanceof Node) {
@@ -523,7 +531,7 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 		}
 	}
 
-	return path;
+	return path_to_note;
 };
 
 // ==================================================================
@@ -587,7 +595,7 @@ Path.prototype.getPath = function() {
 Pawn = function(id, node) {
 	this.id = id;
 	this.node = node;
-}
+};
 
 /**
  * Set the position of the pawn on the graph.

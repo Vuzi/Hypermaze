@@ -33,7 +33,7 @@ ImageLoader.prototype.add = function(image) {
  */
 ImageLoader.prototype.load = function(clbk) {
 
-	if(this.loaded || this.loading || this.to_load.length == 0)
+	if(this.loaded || this.loading || this.to_load.length === 0)
 		return;
 
 	var count = this.to_load.length;
@@ -42,6 +42,24 @@ ImageLoader.prototype.load = function(clbk) {
 
 	// Callback
 	var onload = clbk || this.onload;
+
+	// Prepare the callbacks
+	var load_clbk = function() {
+		count_loaded++;
+
+		if(count_loaded >= count) {
+			me.loading = false;
+			me.loaded = true;
+
+			if(onload)
+				onload(me.images);
+		}
+	};
+
+	var error_clbk = function() {
+		if(me.onerror)
+			me.onerror(this.src);
+	};
 
 	// Results
 	this.images = [];
@@ -54,22 +72,8 @@ ImageLoader.prototype.load = function(clbk) {
 		this.images[this.to_load[i]] = img;
 
 		// Set the callbacks
-		img.onload = function() {
-			count_loaded++;
-
-			if(count_loaded >= count) {
-				me.loading = false;
-				me.loaded = true;
-
-				if(onload)
-					onload(me.images);
-			}
-		};
-
-		img.onerror = function() {
-			if(me.onerror)
-				me.onerror(this.src);
-		};
+		img.onload = load_clbk;
+		img.onerror = error_clbk;
 
 		// Launch the load
 		img.src = this.to_load[i];

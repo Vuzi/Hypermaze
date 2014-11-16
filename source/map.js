@@ -24,7 +24,7 @@ Map = function(context, terrain, tileset) {
  */
 Map.prototype.getWidth = function() {
 	return this.terrain[0].length * this.tileset.tile_size;
-}
+};
 
 /**
  * Return the height of the displayed map in pixel.
@@ -32,7 +32,7 @@ Map.prototype.getWidth = function() {
  */
 Map.prototype.getHeight = function() {
 	return this.terrain.length * this.tileset.tile_size;
-}
+};
 
 /**
  * Draw the background map.
