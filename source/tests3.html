@@ -4,8 +4,24 @@
 	<title>Test !</title>
 	<style type="text/css">
 
+		body {
+			font-family: verdana;
+		}
+
 		#controls input[type="text"]{
 			width: 25px;
+		}
+
+		canvas {
+			image-rendering: optimizeSpeed;
+		    image-rendering: -moz-crisp-edges;
+		    image-rendering: -webkit-optimize-contrast;
+		    image-rendering: optimize-contrast;
+		    -ms-interpolation-mode: nearest-neighbor;
+		}
+
+		div > canvas{
+		    border: 5px solid #ddd;
 		}
 
 	</style>
@@ -24,14 +40,21 @@
 
 		<input type="button" value="Add pawn" id="add">
 		<input type="button" value="Launch" id="launch">
-
+		<input type="checkbox" value="" id="debug"> Draw debug
+		<input type="checkbox" value="" id="background" checked="checked"> Draw background
 		<span id="timer"></span>
 	</form>
 </div>
-<canvas id="canvas" width="4000" height="4000"></canvas>
+<div draggable="false">
+	<canvas id="canvas" width="1500" height="600"></canvas>
+</div>
+<button id="zoomIn">+</button>
+<button id="zoomOut">-</button>
+<button id="zoomReset">Reset</button>
 
 <script type="text/javascript" src="array_utils.js"></script>
 <script type="text/javascript" src="image_loader.js"></script>
+<script type="text/javascript" src="canvas_handler.js"></script>
 <script type="text/javascript" src="ordered_stack.js"></script>
 <script type="text/javascript" src="tileset.js"></script>
 <script type="text/javascript" src="pawns_handler.js"></script>
@@ -48,7 +71,8 @@
 	loader.onload = function(images) {
 
 		// Context
-		var ctx = document.getElementById('canvas').getContext("2d");
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext("2d");
 
 		// Map values
 		var map_raw = 
@@ -130,7 +154,14 @@
 
 		// Create default map
 		var map = new Map(ctx, map_raw, tileset);
+
+		canvas.height = map.getHeight();
+		canvas.width = map.getWidth();
 		map.drawBackground();
+
+		// Canvas handler
+		var drawer = new CanvasHandler(document.getElementById("canvas"), canvas);
+		drawer.updateDisplay();
 
 	    // Create graph
 		var g = new Graph(map_raw, true);
@@ -139,8 +170,50 @@
 		var pawns = [];
 		var dests = [];
 
-		// Show the generated graph
-		//g.debugDraw(null, tileset.tile_size);
+		// Events
+		document.getElementById('zoomIn').onclick = function() {
+			drawer.zoomIn();
+		}
+
+		document.getElementById('zoomOut').onclick = function() {
+			drawer.zoomOut();
+		}
+
+		document.getElementById('zoomReset').onclick = function() {
+			drawer.reset();
+		}
+
+		document.getElementById('debug').onclick = function() {
+
+			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+			
+			if(document.getElementById('background').checked)
+				map.drawBackground();
+
+			if(document.getElementById('debug').checked)
+				g.debugDraw([], tileset.tile_size, ctx);
+			
+			for (var i = 0; i < pawns.length; i++)
+				caracters.draw(pawns[i], tileset, ctx);
+
+			drawer.updateDisplay(true);
+		}
+
+		document.getElementById('background').onclick = function() {
+
+			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+
+			if(document.getElementById('background').checked)
+				map.drawBackground();
+
+			if(document.getElementById('debug').checked)
+				g.debugDraw([], tileset.tile_size, ctx);
+			
+			for (var i = 0; i < pawns.length; i++)
+				caracters.draw(pawns[i], tileset, ctx);
+
+			drawer.updateDisplay(true);
+		}
 
 		document.getElementById("add").onclick = function() {
 			// Get the values
@@ -207,12 +280,19 @@
 
 				// Redraw the map & infos
 				document.getElementById('timer').innerHTML = '( in '+timer+' ms)';
-				map.drawBackground();
 
-				g.debugDraw(results, /*map.tileset.tile_size*/64);
+				ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+
+				if(document.getElementById('background').checked) 
+					map.drawBackground();
+
+				if(document.getElementById('debug').checked)
+					g.debugDraw(results, tileset.tile_size, ctx);
 				
 				for (var i = 0; i < pawns.length; i++)
 					caracters.draw(pawns[i], tileset, ctx);
+
+				drawer.updateDisplay(true);
 
 				return false;
 			};

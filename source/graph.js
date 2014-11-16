@@ -21,10 +21,10 @@ Node = function(value, x, y, spawn, exit, checkpoint) {
 };
 
 /**
- * Set prevision at the turn specified, for the specified turn and pawn
- * @param {number} turn           The turn the prevision is made at
- * @param {number} prevision_turn The turn when the pawn will be at the node
- * @param {Pawn} pawn             The pawn at the position
+ * Set prevision at the turn specified, for the specified turn and pawn.
+ * @param {number} turn           The turn the prevision is made at.
+ * @param {number} prevision_turn The turn when the pawn will be at the node.
+ * @param {Pawn} pawn             The pawn at the position.
  */
 Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
 	if(turn != this.turn) {
@@ -204,7 +204,7 @@ Graph.prototype.node_definitions = {
 	};
 
 /**
- * Initialise the graph with the given data
+ * Initialise the graph with the given data.
  * @param {Array} data An array of strings, representing the maze.
  * @param {boolean} avoid_corner If true, avoid corners path when creating the graph.
  */
@@ -265,7 +265,7 @@ Graph.prototype.init = function(data, avoid_corner) {
 };
 
 /**
- * Return a specific node by its position
+ * Return a specific node by its position.
  * @param  {number} x
  * @param  {number} y
  * @return {Node}
@@ -301,9 +301,7 @@ Graph.prototype.getEdgeByNodes = function(nodeA, nodeB) {
 /**
  * Draw the view of the map
  */
-Graph.prototype.debugDraw = function(path, tile_size) {
-
-	var ctx = document.getElementById('canvas').getContext("2d");
+Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 	
 	var half_size = tile_size / 2;
 
@@ -369,9 +367,9 @@ Graph.prototype.debugDraw = function(path, tile_size) {
 		else
 			ctx.fillText(node.value, x-3, y+3);
 
-		// ctx.fillStyle = 'white';
-		// ctx.font = "10px Arial";
-		// ctx.fillText(node.y+"-"+node.x, x-6, y+10);
+		ctx.fillStyle = 'black';
+		ctx.font = "13px Arial";
+		ctx.fillText(node.y+"-"+node.x, x+10, y+12);
 		ctx.closePath();
 	}
 
