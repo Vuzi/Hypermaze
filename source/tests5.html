@@ -31,7 +31,8 @@
 	<form>
 		Number of pawns to load : <input type="text" id="pawns_nb" value="10">
 
-		<input type="button" value="Launch" id="launch">
+		<input type="button" value="Launch with timer (100ms)" id="launch">
+		<input type="button" value="Launch" id="launch2">
 		<input type="checkbox" value="" id="debug"> Draw debug
 		<input type="checkbox" value="" id="background" checked="checked"> Draw background
 		<span id="timer"></span>
@@ -90,7 +91,7 @@
 			"******DD******************************DDD*******",
 			"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"];
 		var coords = {
-			" "  : [ { x : 0, y : 128}, { x : 64, y : 128 }, { x : 128, y : 128 }, { x : 192, y : 128 }, { x : 256, y : 128 } ], 
+			" "  : [ { x : 0, y : 128}, { x : 0, y : 128}, { x : 64, y : 128 }, { x : 128, y : 128 }, { x : 192, y : 128 }, { x : 256, y : 128 } ], 
 			"*"  : {x: 448, y: 0 },
 			"*0" : {x: 448, y: 0 },
 			"*1" : {x: 256, y: 0 },
@@ -178,69 +179,43 @@
 			drawer.updateDisplay(true);
 		};
 
-		document.getElementById('debug').onclick = function() {
-
-			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
-			
-			if(document.getElementById('background').checked)
-				map.drawBackground();
-
-			if(document.getElementById('debug').checked)
-				g.debugDraw([], tileset.tile_size, ctx);
-			
-			for (var i = 0; i < game.pawns.length; i++)
-				caracters.draw(game.pawns[i], tileset, ctx);
-
-			drawer.updateDisplay(true);
-		};
-
-		document.getElementById('background').onclick = function() {
-
-			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
-
-			if(document.getElementById('background').checked)
-				map.drawBackground();
-
-			if(document.getElementById('debug').checked)
-				g.debugDraw([], tileset.tile_size, ctx);
-			
-			for (var i = 0; i < game.pawns.length; i++)
-				caracters.draw(game.pawns[i], tileset, ctx);
-
-			drawer.updateDisplay(true);
-		};
-
 		// Launch the new game
 		var game = new Game(g, map, caracters);
 
-		game.needredraw = function(game) {
+		needredraw = function() {
 			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
 
 			if(document.getElementById('background').checked) 
 				map.drawBackground();
 
 			if(document.getElementById('debug').checked)
-				g.debugDraw(game.results, tileset.tile_size, ctx);
+				g.debugDraw((selected ? selected.path : null), tileset.tile_size, ctx);
 			
-			for (var i = 0; i < game.pawns.length; i++)
+			for (var i = 0; game && i < game.pawns.length; i++)
 				caracters.draw(game.pawns[i], tileset, ctx);
 
 			drawer.updateDisplay(true);
 		};
 
+		game.needredraw = needredraw;
+		document.getElementById('debug').onclick = needredraw;
+		document.getElementById('background').onclick = needredraw;
+
 		game.new_pawn = function(pawn) {
-			console.log("New pawn created !");
-			console.log(pawn);
+			console.log("New pawn created ! (" + pawn.id + ")" );
 		};
 
 		game.pawn_exited = function(pawn) {
-			console.log("Pawn exited !");
-			console.log(pawn);
+			console.log("Pawn exited ! (" + pawn.id + ")");
 		};
 
 		game.endgame = function() {
 			console.log("End of the game !");
-			document.getElementById("launch").value = "Launch";
+			document.getElementById("launch").value = "Launch with timer (100ms)";
+			document.getElementById("launch2").value = "Launch";
+			document.getElementById("launch2").disabled = "";
+			document.getElementById("launch").disabled = "";
+
 			caracters.clear();
 		};
 
@@ -248,8 +223,31 @@
 			if(game.running) {
 				game.pause();
 			} else {
-				game.launch(document.getElementById('pawns_nb').value, 250);
+				game.launch(document.getElementById('pawns_nb').value, 200);
 				document.getElementById("launch").value = "Pause";
+				document.getElementById("launch2").disabled = "disabled";
+			}
+		};
+
+		document.getElementById("launch2").onclick = function() {
+			if(game.running) {
+				game.nextTurn();
+			} else {
+				game.launch(document.getElementById('pawns_nb').value);
+				document.getElementById("launch2").value = "Next turn";
+				document.getElementById("launch").disabled = "disabled";
+			}
+		};
+
+		var selected = null;
+
+		drawer.onrightclick = function(x, y, e) {
+			var pos = map.getCoords(y, x);
+			var node = g.getNodeAt(pos.x, pos.y);
+
+			if(node && node.pawn) {
+				selected = node.pawn;
+				needredraw();
 			}
 		};
 	};

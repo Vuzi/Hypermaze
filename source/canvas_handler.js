@@ -71,9 +71,16 @@ CanvasHandler.prototype.initEvents = function() {
 		return false;
 	};
 
+
+    canvas.addEventListener('contextmenu', function(e) {
+		if(me.onrightclick)
+			me.onrightclick(~~((e.offsetX - me.x) / me.zoom), ~~((e.offsetY - me.y) / me.zoom), e);
+        e.preventDefault();
+    }, false);
+
 	canvas.onclick = function(e) {
 		if(me.onclick)
-			me.onclick((e.offsetX - this.x) * this.zoom, (e.offsetY - this.y, e) * this.zoom, e);
+			me.onclick(~~((e.offsetX - me.x) / me.zoom), ~~((e.offsetY - me.y) / me.zoom), e);
 	};
 };
 
@@ -120,8 +127,8 @@ CanvasHandler.prototype.zoomChange = function(val, x, y) {
 	var rely = y - this.y;
 
 	// Compute the new position
-	this.x -= ((this.content.width * val) * (relx/(this.content.width * this.zoom))) - relx;
-	this.y -= ((this.content.height * val) * (rely/(this.content.height * this.zoom))) - rely;
+	this.x -= ~~(((this.content.width * val) * (relx/(this.content.width * this.zoom))) - relx);
+	this.y -= ~~(((this.content.height * val) * (rely/(this.content.height * this.zoom))) - rely);
 
 	this.zoom = val;
 	this.updateDisplay();
@@ -174,8 +181,6 @@ CanvasHandler.prototype.updateDisplay = function(force) {
 		this.scaled_content.getContext("2d").drawImage(this.content, 0, 0, this.scaled_content.width, this.scaled_content.height);
 
 		this.scaled_usable = true;
-
-		//console.log('resize : '+this.zoom);
 	}
 
 	this.canvas.getContext("2d").drawImage(this.scaled_content, this.x, this.y);

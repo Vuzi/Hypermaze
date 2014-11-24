@@ -431,7 +431,7 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 				else
 					color = 'orange';
 
-				for (var k = paths.length - 1; k >= 0; k--) {
+				for (var k = paths.length - 1; k >= 2; k--) {
 					var elem = paths[k];
 					
 					if(elem instanceof Node) {
@@ -653,6 +653,7 @@ Pawn.prototype.setPosition = function(node) {
  * @param  {path} path The path to use.
  */
 Pawn.prototype.updatePosition = function(path) {
+	this.path = path;
 	var paths = path.getPath();
 
 	if(paths.length >= 3) {

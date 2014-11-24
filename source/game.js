@@ -11,7 +11,6 @@
  * @param  {Graph} graph                The graph used for the game.
  * @param  {Map} map                    The graphical map to display.
  * @param  {PawnsHandler} pawns_handler The pawns generator, used to generate new pawns.
- * @param  {Context} context            The canvas context where to draw.
  */
 Game = function(graph, map, pawns_handler) {
 	this.graph = graph;
@@ -39,6 +38,7 @@ Game = function(graph, map, pawns_handler) {
  * the pawn_checkpoint method is called (id defined). At the end of the game, when
  * all the pawn have exited the game, the endgame method is called (if defined).
  * @param  {number} pawns_number The number of pawns to spawn.
+ * @param  {number} timer        The timeout. Is null or not provided, the turn won't execute themself.
  */
 Game.prototype.launch = function(pawns_number, timer) {
 	// Nothing at the moment
@@ -52,7 +52,7 @@ Game.prototype.launch = function(pawns_number, timer) {
 Game.prototype.pause = function() {
 	var me = this;
 
-	if(this.running) {
+	if(this.running && this.timer) {
 		if(this.interval) {
 			clearInterval(this.interval);
 			this.interval = null;
@@ -62,7 +62,6 @@ Game.prototype.pause = function() {
 };
 
 Game.prototype.nextTurn = function() {
-	console.log(this);
 	// If the game is running
 	if(this.running) {
 		this.results = [];

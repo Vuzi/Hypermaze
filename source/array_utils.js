@@ -25,7 +25,7 @@ Array.prototype.empty = function() {
 };
 
 Array.prototype.remove = function(i) {
-	return this.splice(i, 1);
+	return this.splice(i, 1)[0];
 };
 
 Array.prototype.random = function() {
