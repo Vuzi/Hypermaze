@@ -62,6 +62,9 @@ Game.prototype.pause = function() {
 };
 
 Game.prototype.nextTurn = function() {
+
+	var start = new Date().getTime();
+
 	// If the game is running
 	if(this.running) {
 		this.results = [];
@@ -70,11 +73,11 @@ Game.prototype.nextTurn = function() {
 		for(var i = 0; i < this.pawns.length; i++) {
 			var pawn = this.pawns[i];
 
+			// Get the path
+			var result = this.graph.dijkstraImproved(pawn.node, null, this.turn, pawn);
+
 			// No time to wait
 			if(pawn.time_to_wait <= 0) {
-				// Get the path
-				var result = this.graph.dijkstraImproved(pawn.node, null, this.turn, pawn);
-
 				// If not bloqued, update the position
 				if(result) {
 					this.results.push(result);
@@ -130,4 +133,8 @@ Game.prototype.nextTurn = function() {
 	// Need to redraw the game
 	if(this.needredraw)
 		this.needredraw(this);
+
+	var end = new Date().getTime();
+	var time = end - start;
+	document.getElementById('timer').innerHTML = "(" + time + " ms)";
 };

@@ -43,9 +43,16 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
  */
 Node.prototype.isEmpty = function(turn, prevision_turn) {
 
-	// Test if empty at the current moment
-	//if(prevision_turn == 0 && this.pawn != null)
-	//	return true;
+	/*
+	// Test if empty taking care of pawns waiting
+	if(this.pawn != null && prevision_turn <= this.pawn.time_to_wait) {
+
+		console.log(prevision_turn)
+		console.log(turn)
+		console.log( this.pawn.time_to_wait)
+
+		return false;
+	}*/
 
 	// If no previsions for the current turn
 	if(turn != this.turn) {
@@ -447,6 +454,11 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 						ctx.lineWidth = 2;
 						ctx.strokeStyle = color;
 						ctx.stroke();
+
+						ctx.font = "13px Arial";
+						ctx.fillText(elem.y+"-"+elem.x, x+10, y+12);
+						ctx.closePath();
+
 					} else if(elem instanceof Edge) {
 						x1 = elem.nodeA.y * tile_size + half_size;
 						y1 = elem.nodeA.x * tile_size + half_size;
@@ -556,10 +568,22 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 	if(path_to_note) {
 		var nodes = path_to_note.getPath();
 
+		// Path
 		for(var j = 0, k = 0; j < nodes.length; j++) {
 			if(nodes[j] instanceof Node) {
+
+				// Lock the node for the next turn
 				nodes[j].setPrevisions(turn, k, pawn);
-				k += 1 + nodes[j].value;
+				k += 1;
+
+				// Lock for the time to wait on the node
+				// (Node value not already on the node, otherwise pawn time to wait)
+				var time_to_wait = nodes[j].pawn == pawn ? pawn.time_to_wait : nodes[j].value;
+
+				for(var l = 0; l < time_to_wait; l++) {
+					nodes[j].setPrevisions(turn, k, pawn);
+					k += 1;
+				}
 			}
 		}
 	}

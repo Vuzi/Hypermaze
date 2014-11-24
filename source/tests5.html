@@ -202,15 +202,15 @@
 		document.getElementById('background').onclick = needredraw;
 
 		game.new_pawn = function(pawn) {
-			console.log("New pawn created ! (" + pawn.id + ")" );
+			//console.log("New pawn created ! (" + pawn.id + ")" );
 		};
 
 		game.pawn_exited = function(pawn) {
-			console.log("Pawn exited ! (" + pawn.id + ")");
+			//console.log("Pawn exited ! (" + pawn.id + ")");
 		};
 
 		game.endgame = function() {
-			console.log("End of the game !");
+			//console.log("End of the game !");
 			document.getElementById("launch").value = "Launch with timer (100ms)";
 			document.getElementById("launch2").value = "Launch";
 			document.getElementById("launch2").disabled = "";
@@ -223,7 +223,7 @@
 			if(game.running) {
 				game.pause();
 			} else {
-				game.launch(document.getElementById('pawns_nb').value, 200);
+				game.launch(document.getElementById('pawns_nb').value, 50);
 				document.getElementById("launch").value = "Pause";
 				document.getElementById("launch2").disabled = "disabled";
 			}
@@ -248,6 +248,8 @@
 			if(node && node.pawn) {
 				selected = node.pawn;
 				needredraw();
+
+				//console.log(node);
 			}
 		};
 	};
