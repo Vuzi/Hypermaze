@@ -112,6 +112,19 @@ Game.prototype.nextTurn = function() {
 			}
 		}
 
+		// End of the game
+		if(this.pawns_nb <= 0 && this.pawns.length <= 0) {
+			if(this.interval) {
+				clearInterval(this.interval);
+				this.interval = null;
+			}
+			this.running = false;
+
+			// Callback
+			if(this.endgame)
+				this.endgame(this);
+		}
+
 		this.turn++;
 	}
 

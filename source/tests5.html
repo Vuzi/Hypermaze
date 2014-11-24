@@ -240,14 +240,14 @@
 
 		game.endgame = function() {
 			console.log("End of the game !");
+			document.getElementById("launch").value = "Launch";
+			caracters.clear();
 		};
 
 		document.getElementById("launch").onclick = function() {
 			if(game.running) {
-				//game.nextTurn();
 				game.pause();
 			} else {
-				document.getElementById("launch").value = "Next turn";
 				game.launch(document.getElementById('pawns_nb').value, 250);
 				document.getElementById("launch").value = "Pause";
 			}
