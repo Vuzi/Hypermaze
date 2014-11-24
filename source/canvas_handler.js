@@ -72,8 +72,8 @@ CanvasHandler.prototype.initEvents = function() {
 	};
 
 	canvas.onclick = function(e) {
-		if(this.onclick)
-			this.onclick((e.offsetX - this.x) * this.zoom, (e.offsetY - this.y, e) * this.zoom, e);
+		if(me.onclick)
+			me.onclick((e.offsetX - this.x) * this.zoom, (e.offsetY - this.y, e) * this.zoom, e);
 	};
 };
 
@@ -175,7 +175,7 @@ CanvasHandler.prototype.updateDisplay = function(force) {
 
 		this.scaled_usable = true;
 
-		console.log('resize : '+this.zoom);
+		//console.log('resize : '+this.zoom);
 	}
 
 	this.canvas.getContext("2d").drawImage(this.scaled_content, this.x, this.y);

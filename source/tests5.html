@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test (5) !</title>
+	<style type="text/css">
+
+		body {
+			font-family: verdana;
+		}
+
+		#controls input[type="text"]{
+			width: 25px;
+		}
+
+		canvas {
+			image-rendering: optimizeSpeed;
+		    image-rendering: -moz-crisp-edges;
+		    image-rendering: -webkit-optimize-contrast;
+		    image-rendering: optimize-contrast;
+		    -ms-interpolation-mode: nearest-neighbor;
+		}
+
+		div > canvas{
+		    border: 5px solid #ddd;
+		}
+
+	</style>
+</head>
+<body>
+<div id="controls">
+	<form>
+		Number of pawns to load : <input type="text" id="pawns_nb" value="10">
+
+		<input type="button" value="Launch" id="launch">
+		<input type="checkbox" value="" id="debug"> Draw debug
+		<input type="checkbox" value="" id="background" checked="checked"> Draw background
+		<span id="timer"></span>
+	</form>
+</div>
+<div draggable="false">
+	<canvas id="canvas" width="1500" height="600"></canvas>
+</div>
+<button id="zoomIn">+</button>
+<button id="zoomOut">-</button>
+<button id="zoomReset">Reset</button>
+
+<script type="text/javascript" src="array_utils.js"></script>
+<script type="text/javascript" src="image_loader.js"></script>
+<script type="text/javascript" src="canvas_handler.js"></script>
+<script type="text/javascript" src="ordered_stack.js"></script>
+<script type="text/javascript" src="tileset.js"></script>
+<script type="text/javascript" src="pawns_handler.js"></script>
+<script type="text/javascript" src="map.js"></script>
+<script type="text/javascript" src="graph.js"></script>
+<script type="text/javascript" src="game.js"></script>
+
+<script type="text/javascript">
+
+	// Load images
+	var map_stylesheet = "floor.png";
+	var car_stylesheet = "characters.png";
+
+	var loader = new ImageLoader([ map_stylesheet, car_stylesheet ]);
+	loader.onload = function(images) {
+
+		// Context
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext("2d");
+
+		// Map values
+		var map_raw = 
+		   ["***************AA**********AA*******************",
+			"*      *              *                        *",
+			"* **    *   ********** *             *   *     *",
+			"* **    *     *      * * *******     *****     *",
+			"*  *    ****  * G*   *   GGG      *  *         *",
+			"*  *        *  * G*   *******     *  ******    *",
+			"*               GG* *       *     *       **   *",
+			"*****G********************  *  ********   *    *",
+			"*  GGGG  * GGGG   *         *         *   *  * *",
+			"* *** GG * G*G*****  ***    ******    *   *    *",
+			"*GGGGGG  * G*G*       *          *    *   **   *",
+			"* G****  *        *************  ******   *    *",
+			"* GGGGGGGGG *          GGGG  *           *     *",
+			"****** ******     ****  GGGG  *      ********  *",
+			"*           *     *       GGG *      333333    *",
+			"*  ******   *                                  *",
+			"*   *                     111 111              *",
+			"*           *                                  *",
+			"******DD******************************DDD*******",
+			"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"];
+		var coords = {
+			" "  : [ { x : 0, y : 128}, { x : 64, y : 128 }, { x : 128, y : 128 }, { x : 192, y : 128 }, { x : 256, y : 128 } ], 
+			"*"  : {x: 448, y: 0 },
+			"*0" : {x: 448, y: 0 },
+			"*1" : {x: 256, y: 0 },
+			"*2" : {x: 128, y: 0 },
+			"*3" : {x: 0  , y: 64},
+			"*4" : {x: 64 , y: 0 },
+			"*5" : {x: 384, y: 0 },
+			"*6" : {x: 128, y: 64},
+			"*7" : {x: 448, y: 64},
+			"*8" : {x: 192, y: 0 },
+			"*9" : {x: 64 , y: 64},
+			"*10": {x: 320, y: 0 },
+			"*11": {x: 256, y: 64},
+			"*12": {x: 192, y: 64},
+			"*13": {x: 320, y: 64},
+			"*14": {x: 384, y: 64},
+			"*15": {x: 0  , y: 0 },
+			"G"  : {x: 0  , y: 192},
+			"D"  : {x: 128, y: 256},
+			"P"  : {x: 128, y: 192},
+			"A"  : {x: 0  , y: 256},
+			"C"  : [ {x: 0  , y: 384}, {x:  64, y : 384}, {x : 0, y : 448}, {x :  64, y : 448}, {x : 128, y : 448}, {x : 192, y : 448}, {x : 256, y : 448}, {x : 320, y : 448} ],
+			"1"  : [ {x: 192, y: 384}, {x: 256, y : 384} ],
+			"2"  : {x: 320, y : 384},
+			"3"  : [ {x: 384, y: 384}, {x: 448, y : 384} ]
+		};
+		var tileset = new Tileset(loader.get("floor.png"), 64, coords);
+
+		// Caracter values
+		var male_heads = [ { x : 0 , y : 0 }, { x : 32, y : 0 }, { x : 64, y : 0 },
+		                   { x : 0 , y : 32}, { x : 32, y : 32}, { x : 64, y : 32}, 
+		                   { x : 0 , y : 64}, { x : 32, y : 64},
+		                   { x : 0 , y : 96}, { x : 32, y : 96},
+		                   { x : 0 , y :128}, { x : 32, y :128}, { x : 64, y :128}, 
+		                   { x : 0 , y :128}, { x : 32, y :128}, { x : 64, y :128}, 
+		                   { x : 0 , y :161}, { x : 32, y :161}, { x : 64, y :161}, 
+		                   { x : 0 , y :192}, { x : 32, y :192}, { x : 64, y :192}, 
+		                   { x : 0 , y :224}, { x : 32, y :224}, { x : 64, y :224}, 
+		                   { x : 0 , y :256}, { x : 32, y :256}, { x : 64, y :224}
+		                   ];
+
+		var male_bodies = [ { x : 128, y : 0  }, {x : 192, y : 0  },
+							{ x : 128, y : 64 }, {x : 192, y : 64 },
+							{ x : 128, y : 128}, {x : 192, y : 128},
+							{ x : 128, y : 192}, {x : 192, y : 192},
+							{ x : 128, y : 256}, {x : 192, y : 256},
+							{ x : 128, y : 320}
+							];
+
+		var female_heads = [ { x : 64 , y : 64 }, { x : 64 , y : 96 }, { x : 64 , y : 128},
+							 { x : 64 , y : 288}, { x : 64 , y : 319}, { x : 64 , y : 351},
+							 { x : 32 , y : 415}, { x : 32 , y : 446}, { x : 32 , y : 477}
+							 ];
+
+		var female_bodies = [ { x : 192, y : 64 }, { x : 192, y : 192}, { x : 192, y : 319},
+		                      { x : 254, y : 319}
+		                      ];
+		var caracters = new PawnsHandler(ctx, loader.get("characters.png"), male_heads, female_heads, male_bodies, female_bodies, 32, 64);
+
+		// Create default map
+		var map = new Map(ctx, map_raw, tileset);
+
+		canvas.height = map.getHeight();
+		canvas.width = map.getWidth();
+		map.drawBackground();
+
+		// Canvas handler
+		var drawer = new CanvasHandler(document.getElementById("canvas"), canvas);
+		drawer.updateDisplay();
+
+	    // Create graph
+		var g = new Graph(map_raw, true);
+
+		// Events
+		document.getElementById('zoomIn').onclick = function() {
+			drawer.zoomIn();
+		};
+
+		document.getElementById('zoomOut').onclick = function() {
+			drawer.zoomOut();
+		};
+
+		document.getElementById('zoomReset').onclick = function() {
+			drawer.reset();
+			drawer.updateDisplay(true);
+		};
+
+		document.getElementById('debug').onclick = function() {
+
+			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+			
+			if(document.getElementById('background').checked)
+				map.drawBackground();
+
+			if(document.getElementById('debug').checked)
+				g.debugDraw([], tileset.tile_size, ctx);
+			
+			for (var i = 0; i < game.pawns.length; i++)
+				caracters.draw(game.pawns[i], tileset, ctx);
+
+			drawer.updateDisplay(true);
+		};
+
+		document.getElementById('background').onclick = function() {
+
+			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+
+			if(document.getElementById('background').checked)
+				map.drawBackground();
+
+			if(document.getElementById('debug').checked)
+				g.debugDraw([], tileset.tile_size, ctx);
+			
+			for (var i = 0; i < game.pawns.length; i++)
+				caracters.draw(game.pawns[i], tileset, ctx);
+
+			drawer.updateDisplay(true);
+		};
+
+		// Launch the new game
+		var game = new Game(g, map, caracters);
+
+		game.needredraw = function(game) {
+			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+
+			if(document.getElementById('background').checked) 
+				map.drawBackground();
+
+			if(document.getElementById('debug').checked)
+				g.debugDraw(game.results, tileset.tile_size, ctx);
+			
+			for (var i = 0; i < game.pawns.length; i++)
+				caracters.draw(game.pawns[i], tileset, ctx);
+
+			drawer.updateDisplay(true);
+		};
+
+		game.new_pawn = function(pawn) {
+			console.log("New pawn created !");
+			console.log(pawn);
+		};
+
+		game.pawn_exited = function(pawn) {
+			console.log("Pawn exited !");
+			console.log(pawn);
+		};
+
+		game.endgame = function() {
+			console.log("End of the game !");
+		};
+
+		document.getElementById("launch").onclick = function() {
+			if(game.running) {
+				//game.nextTurn();
+				game.pause();
+			} else {
+				document.getElementById("launch").value = "Next turn";
+				game.launch(document.getElementById('pawns_nb').value, 250);
+				document.getElementById("launch").value = "Pause";
+			}
+		};
+	};
+
+	loader.load();
+
+</script>
+
+</body>
+</html>

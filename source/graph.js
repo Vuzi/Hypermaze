@@ -94,6 +94,22 @@ Node.prototype.addEdge = function(edge) {
 };
 
 /**
+ * Get an empty neighbour node.
+ * @return {Node} The first empty neighbour node, or null if there is none empty.
+ */
+Node.prototype.getEmptyNeighbour = function() {
+	// Look in all the edges to an empty neighbour
+	for(var i = 0; i < this.edges.length; i++) {
+		var neighbour = this.edges[i].getOther(this);
+		if(neighbour.pawn == null && !neighbour.spawn)
+			return neighbour;
+	}
+
+	//  No empty neighbour
+	return null;
+};
+
+/**
  * Test if the given node object is 
  * equals to the current node.
  * @param  {Object} node
@@ -167,7 +183,7 @@ Edge.prototype.equals = function(edge) {
 
 /**
  * Graph class, used for tha pathfinding algorithm.
- * @param {Array} data An array of strings, representing the maze.
+ * @param {Array} data           An array of strings, representing the maze.
  * @param {boolean} avoid_corner If true, avoid corners path when creating the graph.
  */
 Graph = function(data, avoid_corner) {
@@ -517,7 +533,9 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 	stack.push(new Path(start));
 
 	// If not at the destination
-	while(stack.peek() !== null && stack.peek().node != dest) {
+	// while(stack.peek() !== null && stack.peek().node != dest) {
+	// Temporary modification, stop at the first exit found
+	while(stack.peek() !== null && !stack.peek().node.exit) {
 		var path = stack.pop();
 
 		// For each edge of the road
@@ -525,7 +543,8 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 			// If we haven't visited the next node && node is empty 
 			var next_node = path.node.edges[i].getOther(path.node);
 
-			if(!visited.contains(next_node) && next_node.isEmpty(turn, path.turn)) {
+			if(!visited.contains(next_node) && next_node.isEmpty(turn, path.turn) /*&& 
+				(!next_node.pawn || next_node.pawn.time_to_wait <= 0)*/) {
 				visited.push(next_node);
 				stack.push(path.nextStep(path.node.edges[i], next_node));
 			}
@@ -610,7 +629,8 @@ Path.prototype.getPath = function() {
  */
 Pawn = function(id, node, checkpoints) {
 	this.id = id;
-	this.node = node;
+	if(node)
+		this.setPosition(node);
 	this.time_to_wait = 0;
 	this.checkpoints = checkpoints;
 };
