@@ -71,7 +71,6 @@ CanvasHandler.prototype.initEvents = function() {
 		return false;
 	};
 
-
     canvas.addEventListener('contextmenu', function(e) {
 		if(me.onrightclick)
 			me.onrightclick(~~((e.offsetX - me.x) / me.zoom), ~~((e.offsetY - me.y) / me.zoom), e);

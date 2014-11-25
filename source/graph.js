@@ -42,25 +42,6 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
  * @return {Boolean}                True if the node is empty, false otherwise.
  */
 Node.prototype.isEmpty = function(turn, prevision_turn) {
-
-	/*
-	// Test if empty taking care of pawns waiting
-	if(this.pawn != null && prevision_turn <= this.pawn.time_to_wait) {
-
-		console.log(prevision_turn)
-		console.log(turn)
-		console.log( this.pawn.time_to_wait)
-
-		return false;
-	}*/
-
-	// If no previsions for the current turn
-	if(turn != this.turn) {
-		this.turn = turn;
-		this.prevision_path = {};
-		return true;
-	}
-
 	// If no prevision for the given position
 	if(this.prevision_path[prevision_turn])
 		return false;
@@ -114,6 +95,15 @@ Node.prototype.getEmptyNeighbour = function() {
 
 	//  No empty neighbour
 	return null;
+};
+
+/**
+ * Return the distance between the current node and the given node. The is the carthesian distance.
+ * @param  {Node} node The node to meusure the distance with.
+ * @return {number}    The distance between node and the current object.
+ */
+Node.prototype.distanceFrom = function(node) {
+	return Math.sqrt(Math.pow(node.x - this.x, 2) + Math.pow(node.y - node.y, 2));
 };
 
 /**
@@ -586,6 +576,10 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 				}
 			}
 		}
+	} else {
+		// Lock the current node for the next turn
+		if(pawn.node)
+			pawn.node.setPrevisions(turn, turn + 1, pawn);
 	}
 
 	return path_to_note;
