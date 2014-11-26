@@ -26,8 +26,7 @@ PawnsHandler = function(context, spritesheet, male_heads, female_heads, male_bod
 };
 
 /**
- * Clear the list of generated pawns
- * @return {[type]} [description]
+ * Clear the list of generated pawns.
  */
 PawnsHandler.prototype.clear = function() {
 	this.generated = {};

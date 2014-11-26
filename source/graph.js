@@ -560,7 +560,7 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 
 		// Path
 		for(var j = 0, k = 0; j < nodes.length; j++) {
-			if(nodes[j] instanceof Node) {
+			if(nodes[j] instanceof Node && !nodes[j].exit) {
 
 				// Lock the node for the next turn
 				nodes[j].setPrevisions(turn, k, pawn);
