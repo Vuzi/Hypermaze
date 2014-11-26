@@ -50,7 +50,7 @@ Node.prototype.isEmpty = function(turn, prevision_turn) {
 };
 
 /**
- * Test if this node is a spawn point
+ * Test if this node is a spawn point.
  * @return {boolean}
  */
 Node.prototype.isSpawn = function() {
@@ -58,7 +58,7 @@ Node.prototype.isSpawn = function() {
 };
 
 /**
- * Test if this node is an exit point
+ * Test if this node is an exit point.
  * @return {boolean}
  */
 Node.prototype.isExit = function() {
@@ -66,7 +66,7 @@ Node.prototype.isExit = function() {
 };
 
 /**
- * Test if this node is a checkpoint
+ * Test if this node is a checkpoint.
  * @return {boolean}
  */
 Node.prototype.isCheckpoint = function() {
@@ -545,19 +545,29 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 			// If we haven't visited the next node && node is empty 
 			var next_node = path.node.edges[i].getOther(path.node);
 
-			if(!visited.contains(next_node) && next_node.isEmpty(turn, path.turn) /*&& 
-				(!next_node.pawn || next_node.pawn.time_to_wait <= 0)*/) {
+			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn, path.turn)) {
 				visited.push(next_node);
 				stack.push(path.nextStep(path.node.edges[i], next_node));
 			}
 		}
 	}
 
-	// Found a path, now note it the graph
-	var path_to_note = stack.pop();
-	if(path_to_note) {
-		var nodes = path_to_note.getPath();
+	// Found a path, now note it the graph and return it
+	this.registerPath(stack.peek(), pawn, turn);
+	return stack.pop();
+};
 
+/**
+ * Register a path on the graph with the given path at the given turn
+ * for the given pawn.
+ * @param  {Path}   path The path to register.
+ * @param  {Pawn}   pawn The pawn which will take the path.
+ * @param  {number} turn The turn number for the path.
+ */
+Graph.prototype.registerPath = function(path, pawn, turn) {
+
+	if(path) {
+		var nodes = path.getPath();
 		// Path
 		for(var j = 0, k = 0; j < nodes.length; j++) {
 			if(nodes[j] instanceof Node && !nodes[j].exit) {
@@ -581,8 +591,6 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 		if(pawn.node)
 			pawn.node.setPrevisions(turn, turn + 1, pawn);
 	}
-
-	return path_to_note;
 };
 
 // ==================================================================
