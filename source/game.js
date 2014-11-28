@@ -12,7 +12,7 @@
  * @param  {Map} map                    The graphical map to display.
  * @param  {PawnsHandler} pawns_handler The pawns generator, used to generate new pawns.
  */
-Game = function(graph, map, pawns_handler) {
+Game = function(graph, map, pawns_handler, stats) {
 	this.graph = graph;
 	this.map = map;
 	this.pawns_handler = pawns_handler;
@@ -22,6 +22,7 @@ Game = function(graph, map, pawns_handler) {
 
 	this.turn = 0;
 	this.running = false;
+	this.stats = stats || null;
 
 	// List of possible callbacks
 	this.needredraw = null;
@@ -45,6 +46,10 @@ Game.prototype.launch = function(pawns_number, timer) {
 	this.running = true;
 	this.pawns_nb = pawns_number;
 	this.timer = timer;
+
+	// Stats
+	if(this.stats)
+		this.stats = new Stat();
 
 	this.pause()
 };
@@ -74,7 +79,8 @@ Game.prototype.nextTurn = function() {
 			var pawn = this.pawns[i];
 
 			// Get the path
-			var result = this.graph.dijkstraImproved(pawn.node, null, this.turn, pawn);
+			//var result = this.graph.dijkstraImproved(pawn.node, this.turn, pawn);
+			var result = this.graph.A_Star(pawn.node, this.turn, pawn);
 
 			// No time to wait
 			if(pawn.time_to_wait <= 0) {
@@ -136,5 +142,9 @@ Game.prototype.nextTurn = function() {
 
 	var end = new Date().getTime();
 	var time = end - start;
-	document.getElementById('timer').innerHTML = "(" + time + " ms)";
+
+	if(this.stats) {
+		this.stats.register(this.pawns.length, time);
+		document.getElementById('timer').innerHTML = "(" + time + " ms)";
+	}
 };

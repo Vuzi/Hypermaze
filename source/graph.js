@@ -125,6 +125,32 @@ Node.prototype.equals = function(node) {
 		return false;
 };
 
+/**
+ * Return the nearest node given.
+ * @param  {Array} nodes Array of nodes to be tested.	
+ * @return {Node}        The nearest node, or null if none could be found.      
+ */
+Node.prototype.nearest = function(nodes) {
+
+	if(!nodes || !nodes.length)
+		return null;
+
+	var nearest = nodes[0];
+	var length = this.distanceFrom(nodes[0]);
+
+	for(var i = 1; i < nodes.length; i++) {
+		var tmp = this.distanceFrom(nodes[i]);
+
+		// Found a nearest node
+		if(tmp < length) {
+			length = tmp;
+			nearest = nodes[i];
+		}
+	}
+
+	return nearest;
+};
+
 // ==================================================================
 
 /**
@@ -332,9 +358,79 @@ Graph.prototype.getEdgeByNodes = function(nodeA, nodeB) {
 };
 
 /**
- * Draw the view of the map
+ * Draw the path on the given path on the graph.
  */
-Graph.prototype.debugDraw = function(path, tile_size, ctx) {
+Graph.prototype.debugDrawPath = function(path, tile_size, ctx) {
+	
+	var half_size = tile_size / 2;
+
+	var x, y, x1, y1, x2, y2;
+
+	// Draw the path
+	if(path) {
+		if(!(path instanceof Array)) {
+			path = [ path ];
+		}
+
+		for(var l = 0; l < path.length; l++) {
+			if(path[l]) {
+				var paths = path[l].getPath();
+				var color;
+
+				if(l === 0)
+					color = 'red';
+				else if(l == 1)
+					color = 'green';
+				else if(l == 2)
+					color = 'blue';
+				else
+					color = 'orange';
+
+				for (var k = paths.length - 1; k >= 2; k--) {
+					var elem = paths[k];
+					
+					if(elem instanceof Node) {
+						x = elem.y * tile_size + half_size;
+						y = elem.x * tile_size + half_size;
+
+						ctx.beginPath();
+						ctx.arc(x+(l*1), y+(l*1), 10, 0, 2*Math.PI, false);
+						if(k == 2) {
+							ctx.fillStyle = color;
+							ctx.fill();
+						}
+						ctx.lineWidth = 2;
+						ctx.strokeStyle = color;
+						ctx.stroke();
+
+						ctx.font = "13px Arial";
+						ctx.fillText(elem.y+"-"+elem.x, x+10, y+12);
+						ctx.closePath();
+
+					} else if(elem instanceof Edge) {
+						x1 = elem.nodeA.y * tile_size + half_size;
+						y1 = elem.nodeA.x * tile_size + half_size;
+
+						x2 = elem.nodeB.y * tile_size + half_size;
+						y2 = elem.nodeB.x * tile_size + half_size;
+
+						ctx.beginPath();
+						ctx.moveTo(x1+(l*1), y1+(l*1));
+						ctx.lineTo(x2+(l*1), y2+(l*1));
+						ctx.lineWidth = 2;
+						ctx.strokeStyle = color;
+						ctx.stroke();
+					}
+				}
+			}
+		}
+	}
+};
+
+/**
+ * Draw the view of the map.
+ */
+Graph.prototype.debugDraw = function(tile_size, ctx) {
 	
 	var half_size = tile_size / 2;
 
@@ -407,66 +503,6 @@ Graph.prototype.debugDraw = function(path, tile_size, ctx) {
 		ctx.fillText(node.y+"-"+node.x, x+10, y+12);
 		ctx.closePath();
 	}
-
-	// Draw the path
-	if(path) {
-		if(!(path instanceof Array)) {
-			path = [ path ];
-		}
-
-		for(var l = 0; l < path.length; l++) {
-			if(path[l]) {
-				var paths = path[l].getPath();
-				var color;
-
-				if(l === 0)
-					color = 'red';
-				else if(l == 1)
-					color = 'green';
-				else if(l == 2)
-					color = 'blue';
-				else
-					color = 'orange';
-
-				for (var k = paths.length - 1; k >= 2; k--) {
-					var elem = paths[k];
-					
-					if(elem instanceof Node) {
-						x = elem.y * tile_size + half_size;
-						y = elem.x * tile_size + half_size;
-
-						ctx.beginPath();
-						ctx.arc(x+(l*1), y+(l*1), 10, 0, 2*Math.PI, false);
-						if(k == 2) {
-							ctx.fillStyle = color;
-							ctx.fill();
-						}
-						ctx.lineWidth = 2;
-						ctx.strokeStyle = color;
-						ctx.stroke();
-
-						ctx.font = "13px Arial";
-						ctx.fillText(elem.y+"-"+elem.x, x+10, y+12);
-						ctx.closePath();
-
-					} else if(elem instanceof Edge) {
-						x1 = elem.nodeA.y * tile_size + half_size;
-						y1 = elem.nodeA.x * tile_size + half_size;
-
-						x2 = elem.nodeB.y * tile_size + half_size;
-						y2 = elem.nodeB.x * tile_size + half_size;
-
-						ctx.beginPath();
-						ctx.moveTo(x1+(l*1), y1+(l*1));
-						ctx.lineTo(x2+(l*1), y2+(l*1));
-						ctx.lineWidth = 2;
-						ctx.strokeStyle = color;
-						ctx.stroke();
-					}
-				}
-			}
-		}
-	}
 };
 
 /**
@@ -521,7 +557,7 @@ Graph.prototype.dijkstra = function(start, dest) {
  * @param  {number} turn  The actual turn number
  * @return {Path}         The list of edges and nodes taken
  */
-Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
+Graph.prototype.dijkstraImproved = function(start, turn, pawn) {
 	// Create the stack & visited nodes
 	var stack = new OrderedStack(function(path1, path2) {
 		if(path1.value > path2.value)
@@ -537,6 +573,54 @@ Graph.prototype.dijkstraImproved = function(start, dest, turn, pawn) {
 	// If not at the destination
 	// while(stack.peek() !== null && stack.peek().node != dest) {
 	// Temporary modification, stop at the first exit found
+	while(stack.peek() !== null && !stack.peek().node.exit) {
+		var path = stack.pop();
+
+		// For each edge of the road
+		for(var i  = 0; i < path.node.edges.length; i++) {
+			// If we haven't visited the next node && node is empty 
+			var next_node = path.node.edges[i].getOther(path.node);
+
+			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn, path.turn)) {
+				visited.push(next_node);
+				stack.push(path.nextStep(path.node.edges[i], next_node));
+			}
+		}
+	}
+
+	// Found a path, now note it the graph and return it
+	this.registerPath(stack.peek(), pawn, turn);
+	return stack.pop();
+};
+
+/**
+ * Compute the shortest path between start and dest using the A* algorithm.
+ * 
+ * @param  {Node} start   The start node.
+ * @param  {number} dest  The checkpoint value, or 0/false for the exit
+ * @param  {number} turn  The actual turn number
+ * @return {Path}         The list of edges and nodes taken
+ */
+Graph.prototype.A_Star = function(start, turn, pawn) {
+	// Compute the nearest exit
+	var dest = start.nearest(this.exits);
+
+	// Create the stack & visited nodes
+	var stack = new OrderedStack(function(path1, path2) {
+		var dist1 = path1.node.distanceFrom(dest);
+		var dist2 = path2.node.distanceFrom(dest);
+
+		if(path1.value + dist1 > path2.value + dist2)
+			return 1;
+		else if(path1.value + dist1 < path2.value + dist2)
+			return -1;
+		else
+			return 0;
+	});
+	var visited = [start];
+	stack.push(new Path(start));
+
+	// If not at an exit
 	while(stack.peek() !== null && !stack.peek().node.exit) {
 		var path = stack.pop();
 

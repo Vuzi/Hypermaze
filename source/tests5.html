@@ -45,6 +45,8 @@
 <button id="zoomOut">-</button>
 <button id="zoomReset">Reset</button>
 
+<div id="stats"></div>
+
 <script type="text/javascript" src="array_utils.js"></script>
 <script type="text/javascript" src="image_loader.js"></script>
 <script type="text/javascript" src="canvas_handler.js"></script>
@@ -54,6 +56,7 @@
 <script type="text/javascript" src="map.js"></script>
 <script type="text/javascript" src="graph.js"></script>
 <script type="text/javascript" src="game.js"></script>
+<script type="text/javascript" src="stat.js"></script>
 
 <script type="text/javascript">
 
@@ -180,7 +183,7 @@
 		};
 
 		// Launch the new game
-		var game = new Game(g, map, caracters);
+		var game = new Game(g, map, caracters, true);
 
 		needredraw = function() {
 			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
@@ -189,7 +192,10 @@
 				map.drawBackground();
 
 			if(document.getElementById('debug').checked)
-				g.debugDraw((selected ? selected.path : null), tileset.tile_size, ctx);
+				g.debugDraw(tileset.tile_size, ctx);
+
+			if(selected)
+				g.debugDrawPath(selected.path, tileset.tile_size, ctx);
 			
 			for (var i = 0; game && i < game.pawns.length; i++)
 				caracters.draw(game.pawns[i], tileset, ctx);
@@ -217,6 +223,11 @@
 			document.getElementById("launch").disabled = "";
 
 			caracters.clear();
+
+			if(game.stats) {
+				document.getElementById("stats").innerHTML = "";
+				document.getElementById("stats").appendChild(game.stats.displayResults(1000, 500, 50));
+			}
 		};
 
 		document.getElementById("launch").onclick = function() {
@@ -248,8 +259,6 @@
 			if(node && node.pawn) {
 				selected = node.pawn;
 				needredraw();
-
-				//console.log(node);
 			}
 		};
 	};
