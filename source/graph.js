@@ -42,6 +42,11 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
  * @return {Boolean}                True if the node is empty, false otherwise.
  */
 Node.prototype.isEmpty = function(turn, prevision_turn) {
+	if(turn != this.turn) {
+		this.turn = turn;
+		this.prevision_path = {};
+	}
+
 	// If no prevision for the given position
 	if(this.prevision_path[prevision_turn])
 		return false;
@@ -325,9 +330,9 @@ Graph.prototype.init = function(data, avoid_corner) {
 
 /**
  * Return a specific node by its position.
- * @param  {number} x
- * @param  {number} y
- * @return {Node}
+ * @param  {number} x.
+ * @param  {number} y.
+ * @return {Node}   The node at x:y.
  */
 Graph.prototype.getNodeAt = function(x, y) {
 	var tmp = new Node(0, x, y);
@@ -341,10 +346,10 @@ Graph.prototype.getNodeAt = function(x, y) {
 };
 
 /**
- * Return a specific node by its endpoints
- * @param  {Node} nodeA
- * @param  {Node} nodeB
- * @return {Edge}
+ * Return a specific esdge by its endpoints.
+ * @param  {Node} nodeA.
+ * @param  {Node} nodeB.
+ * @return {Edge} The edge between nodeA and nodeB.
  */
 Graph.prototype.getEdgeByNodes = function(nodeA, nodeB) {
 	var tmp = new Edge(nodeA, nodeB, 0);
@@ -619,6 +624,7 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 	});
 	var visited = [start];
 	stack.push(new Path(start));
+	stack.peek().turn += pawn.time_to_wait;
 
 	// If not at an exit
 	while(stack.peek() !== null && !stack.peek().node.exit) {
@@ -673,7 +679,7 @@ Graph.prototype.registerPath = function(path, pawn, turn) {
 	} else {
 		// Lock the current node for the next turn
 		if(pawn.node)
-			pawn.node.setPrevisions(turn, turn + 1, pawn);
+			pawn.node.setPrevisions(turn, 1, pawn);
 	}
 };
 
@@ -750,7 +756,7 @@ Pawn = function(id, node, checkpoints) {
  * @param {Node} node The node where the pawn should be
  */
 Pawn.prototype.setPosition = function(node) {
-	if(this.node)
+	if(this.node && this.node.pawn == this)
 		this.node.pawn = null;
 	this.node = node;
 	node.pawn = this;
@@ -763,10 +769,20 @@ Pawn.prototype.setPosition = function(node) {
  * @param  {path} path The path to use.
  */
 Pawn.prototype.updatePosition = function(path) {
-	this.path = path;
-	var paths = path.getPath();
+	// No time to wait
+	if(this.time_to_wait <= 0) {
+		// If not bloqued, update the position
+		if(path) {
+			var paths = path.getPath();
 
-	if(paths.length >= 3) {
-		this.setPosition(paths[2]);
+			if(paths.length >= 3) {
+				this.setPosition(paths[2]);
+			}
+		}
+	} else {
+		this.time_to_wait--;
 	}
+
+	this.path = path;
+
 };

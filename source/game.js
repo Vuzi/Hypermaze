@@ -77,21 +77,8 @@ Game.prototype.nextTurn = function() {
 		// Move all the pawns on the map
 		for(var i = 0; i < this.pawns.length; i++) {
 			var pawn = this.pawns[i];
-
-			// Get the path
-			//var result = this.graph.dijkstraImproved(pawn.node, this.turn, pawn);
-			var result = this.graph.A_Star(pawn.node, this.turn, pawn);
-
-			// No time to wait
-			if(pawn.time_to_wait <= 0) {
-				// If not bloqued, update the position
-				if(result) {
-					this.results.push(result);
-					pawn.updatePosition(result);
-				}
-			} else {
-				pawn.time_to_wait--;
-			}
+			// Get the path			
+			pawn.updatePosition(this.graph.A_Star(pawn.node, this.turn, pawn));
 		}
 
 		// Delete the pawns that have arrived
@@ -113,6 +100,9 @@ Game.prototype.nextTurn = function() {
 					// Push a new pawn on the free node next to the exit
 					this.pawns.push(new Pawn(this.pawns_nb+"", free_node, {}));
 					this.pawns_nb--;
+
+					// Register the pawn for the next turns
+					free_node.setPrevisions(this.turn, 0, this.pawns.last());
 
 					if(this.new_pawn)
 						this.new_pawn(this.pawns.last());

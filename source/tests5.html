@@ -4,8 +4,94 @@
 	<title>Test (5) !</title>
 	<style type="text/css">
 
+
+		.button {
+		    position: relative;
+		    overflow: visible;
+		    display: inline-block;
+		    padding: 0.5em 1em;
+		    border: 1px solid #d4d4d4;
+		    margin: 0;
+		    text-decoration: none;
+		    text-align: center;
+		    text-shadow: 1px 1px 0 #fff;
+		    font:11px/normal sans-serif;
+		    color: #333;
+		    white-space: nowrap;
+		    cursor: pointer;
+		    outline: none;
+		    background-color: #ececec;
+		    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f4f4f4), to(#ececec));
+		    background-image: -moz-linear-gradient(#f4f4f4, #ececec);
+		    background-image: -ms-linear-gradient(#f4f4f4, #ececec);
+		    background-image: -o-linear-gradient(#f4f4f4, #ececec);
+		    background-image: linear-gradient(#f4f4f4, #ececec);
+		    -moz-background-clip: padding; /* for Firefox 3.6 */
+		    background-clip: padding-box;
+		    border-radius: 0.2em;
+		    /* IE hacks */
+		    zoom: 1;
+		    *display: inline;
+		}
+
+		.button:hover {
+		    border-color: #3072b3;
+		    border-bottom-color: #2a65a0;
+		    text-decoration: none;
+		    text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
+		    color: #fff;
+		    background-color: #3c8dde;
+		    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#599bdc), to(#3072b3));
+		    background-image: -moz-linear-gradient(#599bdc, #3072b3);
+		    background-image: -o-linear-gradient(#599bdc, #3072b3);
+		    background-image: linear-gradient(#599bdc, #3072b3);
+		}
+
+		.button:focus {
+		    border-color: #3072b3;
+		    border-bottom-color: #2a65a0;
+		    text-decoration: none;
+		}
+
+		.button:active {
+		    border-color: #2a65a0;
+		    border-bottom-color: #3884cd;
+		    background-color: #3072b3;
+		    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#3072b3), to(#599bdc));
+		    background-image: -moz-linear-gradient(#3072b3, #599bdc);
+		    background-image: -ms-linear-gradient(#3072b3, #599bdc);
+		    background-image: -o-linear-gradient(#3072b3, #599bdc);
+		    background-image: linear-gradient(#3072b3, #599bdc);
+		}
+
+		/* overrides extra padding on button elements in Firefox */
+		.button::-moz-focus-inner {
+		    padding: 0;
+		    border: 0;
+		}
+
+		.button[disabled] {
+			color: gray;
+		}
+
 		body {
 			font-family: verdana;
+		}
+
+		#controls {
+			border: 5px solid #ddd;
+			border-radius: 2px;
+			padding: 10px;
+			margin: 10px;
+			width: 1480px;
+		}
+
+		#launcher {
+			margin-top: 15px;
+		}
+
+		#launcher input[type="submit"] {
+			font-size: 105%;
 		}
 
 		#controls input[type="text"]{
@@ -13,6 +99,7 @@
 		}
 
 		canvas {
+			margin: 10px;
 			image-rendering: optimizeSpeed;
 		    image-rendering: -moz-crisp-edges;
 		    image-rendering: -webkit-optimize-contrast;
@@ -22,30 +109,46 @@
 
 		div > canvas{
 		    border: 5px solid #ddd;
+			border-radius: 2px;
+		}
+
+		#canvas_controls {
+			border: 5px solid #ddd;
+			border-radius: 2px;
+			border-top: 0px;
+			padding: 5px;
+			margin: 10px;
+			margin-top: -13px;
+			width: 1490px;
 		}
 
 	</style>
 </head>
 <body>
-<div id="controls">
-	<form>
-		Number of pawns to load : <input type="text" id="pawns_nb" value="10">
+	<div id="controls">
+		<form>
+			Number of pawns to load : <input type="text" id="pawns_nb" value="10">
 
-		<input type="button" value="Launch with timer (100ms)" id="launch">
-		<input type="button" value="Launch" id="launch2">
-		<input type="checkbox" value="" id="debug"> Draw debug
-		<input type="checkbox" value="" id="background" checked="checked"> Draw background
-		<span id="timer"></span>
-	</form>
-</div>
-<div draggable="false">
-	<canvas id="canvas" width="1500" height="600"></canvas>
-</div>
-<button id="zoomIn">+</button>
-<button id="zoomOut">-</button>
-<button id="zoomReset">Reset</button>
+			<input type="checkbox" value="" id="debug"> Draw debug
+			<input type="checkbox" value="" id="background" checked="checked"> Draw background
 
-<div id="stats"></div>
+			<div id="launcher">
+				<input type="submit" class="button" value="Launch with timer (100ms)" id="launch">
+				<input type="submit" class="button" value="Launch" id="launch2">
+				<span id="timer"></span>
+			</div>
+		</form>
+	</div>
+	<div draggable="false">
+		<canvas id="canvas" width="1500" height="600"></canvas>
+		<div id="canvas_controls">
+			<button class="button" id="zoomIn">+</button>
+			<button class="button" id="zoomOut">-</button>
+			<button class="button" id="zoomReset">Reset</button>
+		</div>
+	</div>
+
+	<div id="stats"></div>
 
 <script type="text/javascript" src="array_utils.js"></script>
 <script type="text/javascript" src="image_loader.js"></script>
@@ -230,7 +333,7 @@
 			}
 		};
 
-		document.getElementById("launch").onclick = function() {
+		document.getElementById("launch").onclick = function(e) {
 			if(game.running) {
 				game.pause();
 			} else {
@@ -238,9 +341,11 @@
 				document.getElementById("launch").value = "Pause";
 				document.getElementById("launch2").disabled = "disabled";
 			}
+
+			return false;
 		};
 
-		document.getElementById("launch2").onclick = function() {
+		document.getElementById("launch2").onclick = function(e) {
 			if(game.running) {
 				game.nextTurn();
 			} else {
@@ -248,6 +353,8 @@
 				document.getElementById("launch2").value = "Next turn";
 				document.getElementById("launch").disabled = "disabled";
 			}
+
+			return false;
 		};
 
 		var selected = null;
@@ -257,7 +364,17 @@
 			var node = g.getNodeAt(pos.x, pos.y);
 
 			if(node && node.pawn) {
-				selected = node.pawn;
+				if(selected == node.pawn)
+					selected = null;
+				else {
+					console.log(node.pawn);
+					if(node.pawn.path)
+						console.log(node.pawn.path.getPath());
+					selected = node.pawn;
+				}
+				needredraw();
+			} else if(selected) {
+				selected = null;
 				needredraw();
 			}
 		};

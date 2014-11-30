@@ -1,7 +1,7 @@
 
 /**
- * Ordered stack
- * @param {function} comparator the comparator used to order the stack
+ * Ordered stack.
+ * @param {function} comparator the comparator used to order the stack.
  */
 OrderedStack = function(comparator) {
 	this.comparator = comparator;
