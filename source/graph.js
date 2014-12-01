@@ -12,8 +12,8 @@ Node = function(value, x, y, spawn, exit, checkpoint) {
 	this.edges = [];
 	this.pawn = null;
 
+	// Two turn previsions
 	this.prevision_path = {};
-	this.turn = -1;
 
 	this.spawn = spawn || false;
 	this.exit = exit || false;
@@ -27,12 +27,11 @@ Node = function(value, x, y, spawn, exit, checkpoint) {
  * @param {Pawn} pawn             The pawn at the position.
  */
 Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
-	if(turn != this.turn) {
-		this.turn = turn;
-		this.prevision_path = {};
-	}
+	if(!this.prevision_path[turn])
+		this.prevision_path[turn] = {};
 
-	this.prevision_path[prevision_turn] = pawn;
+	// Register the path for the given node at the turn + prevision_turn turn
+	this.prevision_path[turn][prevision_turn] = pawn;
 };
 
 /**
@@ -41,17 +40,22 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
  * @param  {number}  prevision_turn The turn to test.
  * @return {Boolean}                True if the node is empty, false otherwise.
  */
-Node.prototype.isEmpty = function(turn, prevision_turn) {
-	if(turn != this.turn) {
-		this.turn = turn;
-		this.prevision_path = {};
+Node.prototype.isEmpty = function(turn, prevision_turn, pawn) {
+	
+	// Previsions from the current turn
+	if(this.prevision_path[turn]) {
+		if(this.prevision_path[turn][prevision_turn])
+			return false;
+	} 
+
+	// Previsions from previous turn
+	if(this.prevision_path[turn - 1]) {
+		if(this.prevision_path[turn - 1][prevision_turn + 1] &&
+           this.prevision_path[turn - 1][prevision_turn + 1] != pawn)
+			return false;
 	}
 
-	// If no prevision for the given position
-	if(this.prevision_path[prevision_turn])
-		return false;
-	else
-		return true;
+	return true;
 };
 
 /**
@@ -635,14 +639,16 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 			// If we haven't visited the next node && node is empty 
 			var next_node = path.node.edges[i].getOther(path.node);
 
-			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn, path.turn)) {
+			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn, path.turn, pawn)) {
 				visited.push(next_node);
 				stack.push(path.nextStep(path.node.edges[i], next_node));
 			}
 		}
 	}
 
-	// Found a path, now note it the graph and return it
+	// Unregister the previous path of the node, then
+	// register the new one on the graph.
+	this.unregisterPath(pawn.path, pawn, turn - 1);
 	this.registerPath(stack.peek(), pawn, turn);
 	return stack.pop();
 };
@@ -650,12 +656,13 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 /**
  * Register a path on the graph with the given path at the given turn
  * for the given pawn.
- * @param  {Path}   path The path to register.
+ * @param  {Path}   path The path to register. Can be null.
  * @param  {Pawn}   pawn The pawn which will take the path.
  * @param  {number} turn The turn number for the path.
  */
 Graph.prototype.registerPath = function(path, pawn, turn) {
 
+	// TODO : optimise
 	if(path) {
 		var nodes = path.getPath();
 		// Path
@@ -680,6 +687,34 @@ Graph.prototype.registerPath = function(path, pawn, turn) {
 		// Lock the current node for the next turn
 		if(pawn.node)
 			pawn.node.setPrevisions(turn, 1, pawn);
+	}
+};
+
+/**
+ * Unregister a path in the graph, at the given turn for the given pawn
+ * with the given path.	
+ * @param  {Result} path The path to erase.
+ * @param  {Pawn} pawn   The pawn which has the path to erase.
+ * @param  {number} turn The turn to erase at.
+ */
+Graph.prototype.unregisterPath = function(path, pawn, turn) {
+
+	// TODO : optimise
+	if(path) {
+		var nodes = path.getPath();
+		// Path
+		for(var j = 0; j < nodes.length; j++) {
+			var node = nodes[j];
+
+			if(node instanceof Node && node.prevision_path[turn]) {
+				for (prevision_turn in node.prevision_path[turn]) {
+					// If this is the pawn to unregister, unregister it.
+					if(node.prevision_path[turn][prevision_turn] == pawn) {
+						node.prevision_path[turn][prevision_turn] = undefined;
+					}
+				}
+			}
+		}
 	}
 };
 
