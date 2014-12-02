@@ -703,19 +703,21 @@ Path.prototype.nextStep = function(edge, node) {
  * @return {Array} List of nodes and edges used in the path.
  */
 Path.prototype.getPath = function() {
-	var paths = [];
-	var path = this;
+	if(!this.paths) {
+		this.paths = [];
+		var path = this;
 
-	while(path) {
-		paths.unshift(path.node);
+		while(path) {
+			this.paths.unshift(path.node);
 
-		if(path.edge)
-			paths.unshift(path.edge);
+			if(path.edge)
+				this.paths.unshift(path.edge);
 
-		path = path.previous;
+			path = path.previous;
+		}
 	}
 
-	return paths;
+	return this.paths;
 };
 
 // ==================================================================
@@ -767,5 +769,4 @@ Pawn.prototype.updatePosition = function(path) {
 	}
 
 	this.path = path;
-
 };
