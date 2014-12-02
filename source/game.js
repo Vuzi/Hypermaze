@@ -77,7 +77,7 @@ Game.prototype.nextTurn = function() {
 		// Move all the pawns on the map
 		for(var i = 0; i < this.pawns.length; i++) {
 			var pawn = this.pawns[i];
-			// Get the path			
+			// Get the path
 			pawn.updatePosition(this.graph.A_Star(pawn.node, this.turn, pawn));
 		}
 
@@ -102,7 +102,7 @@ Game.prototype.nextTurn = function() {
 					this.pawns_nb--;
 
 					// Register the pawn for the next turns
-					free_node.setPrevisions(this.turn, 0, this.pawns.last());
+					free_node.setPrevisions(this.turn, this.pawns.last());
 
 					if(this.new_pawn)
 						this.new_pawn(this.pawns.last());

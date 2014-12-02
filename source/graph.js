@@ -26,12 +26,12 @@ Node = function(value, x, y, spawn, exit, checkpoint) {
  * @param {number} prevision_turn The turn when the pawn will be at the node.
  * @param {Pawn} pawn             The pawn at the position.
  */
-Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
-	if(!this.prevision_path[turn])
-		this.prevision_path[turn] = {};
+Node.prototype.setPrevisions = function(turn, pawn) {
+	if(!this.prevision_path)
+		this.prevision_path = {};
 
-	// Register the path for the given node at the turn + prevision_turn turn
-	this.prevision_path[turn][prevision_turn] = pawn;
+	// Register the path for the given node at the turn 'turn'
+	this.prevision_path[turn] = pawn;
 };
 
 /**
@@ -40,18 +40,12 @@ Node.prototype.setPrevisions = function(turn, prevision_turn, pawn) {
  * @param  {number}  prevision_turn The turn to test.
  * @return {Boolean}                True if the node is empty, false otherwise.
  */
-Node.prototype.isEmpty = function(turn, prevision_turn, pawn) {
-	
-	// Previsions from the current turn
-	if(this.prevision_path[turn]) {
-		if(this.prevision_path[turn][prevision_turn])
-			return false;
-	} 
+Node.prototype.isEmpty = function(turn, pawn) {
 
 	// Previsions from previous turn
-	if(this.prevision_path[turn - 1]) {
-		if(this.prevision_path[turn - 1][prevision_turn + 1] &&
-           this.prevision_path[turn - 1][prevision_turn + 1] != pawn)
+	if(this.prevision_path) {
+		if(this.prevision_path[turn] &&
+           this.prevision_path[turn] != pawn)
 			return false;
 	}
 
@@ -516,57 +510,12 @@ Graph.prototype.debugDraw = function(tile_size, ctx) {
 
 /**
  * Compute the shortest path between start and dest using the dijkstra algorithm.
- * This version doesn't take the computed path of other pawn
- * in the graph and can give non-logical results for humans.
  * 
  * @param  {Node} start   The start node.
- * @param  {number} dest  The checkpoint value, or 0/false for the exit.
+ * @param  {number} turn  The actual turn number.
  * @return {Path}         The list of edges and nodes taken.
  */
-Graph.prototype.dijkstra = function(start, dest) {
-
-	// Create the stack & visited nodes
-	var stack = new OrderedStack(function(path1, path2) {
-		if(path1.value > path2.value)
-			return 1;
-		else if(path1.value < path2.value)
-			return -1;
-		else
-			return 0;
-	});
-	var visited = [];
-	stack.push(new Path(start));
-
-	// If not at the destination
-	while(stack.peek() !== null && stack.peek().node != dest) {
-		var path = stack.pop();
-
-		// For each edge of the road
-		for(var i  = 0; i < path.node.edges.length; i++) {
-			// If we haven't visited the next node
-			var next_node = path.node.edges[i].getOther(path.node);
-
-			if(!next_node.pawn && !visited.contains(next_node)) {
-				visited.push(next_node);
-
-				stack.push(path.nextStep(path.node.edges[i], next_node));
-			}
-		}
-	}
-
-	return stack.peek();
-};
-
-
-/**
- * Compute the shortest path between start and dest using the dijkstra algorithm.
- * 
- * @param  {Node} start   The start node.
- * @param  {number} dest  The checkpoint value, or 0/false for the exit
- * @param  {number} turn  The actual turn number
- * @return {Path}         The list of edges and nodes taken
- */
-Graph.prototype.dijkstraImproved = function(start, turn, pawn) {
+Graph.prototype.dijkstra = function(start, turn, pawn) {
 	// Create the stack & visited nodes
 	var stack = new OrderedStack(function(path1, path2) {
 		if(path1.value > path2.value)
@@ -578,10 +527,9 @@ Graph.prototype.dijkstraImproved = function(start, turn, pawn) {
 	});
 	var visited = [start];
 	stack.push(new Path(start));
+	stack.peek().turn += pawn.time_to_wait;
 
-	// If not at the destination
-	// while(stack.peek() !== null && stack.peek().node != dest) {
-	// Temporary modification, stop at the first exit found
+	// If not at an exit
 	while(stack.peek() !== null && !stack.peek().node.exit) {
 		var path = stack.pop();
 
@@ -590,14 +538,16 @@ Graph.prototype.dijkstraImproved = function(start, turn, pawn) {
 			// If we haven't visited the next node && node is empty 
 			var next_node = path.node.edges[i].getOther(path.node);
 
-			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn, path.turn)) {
+			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn + path.turn, pawn)) {
 				visited.push(next_node);
 				stack.push(path.nextStep(path.node.edges[i], next_node));
 			}
 		}
 	}
 
-	// Found a path, now note it the graph and return it
+	// Unregister the previous path of the node, then
+	// register the new one on the graph.
+	this.unregisterPath(pawn.path, pawn);
 	this.registerPath(stack.peek(), pawn, turn);
 	return stack.pop();
 };
@@ -606,9 +556,8 @@ Graph.prototype.dijkstraImproved = function(start, turn, pawn) {
  * Compute the shortest path between start and dest using the A* algorithm.
  * 
  * @param  {Node} start   The start node.
- * @param  {number} dest  The checkpoint value, or 0/false for the exit
- * @param  {number} turn  The actual turn number
- * @return {Path}         The list of edges and nodes taken
+ * @param  {number} turn  The actual turn number.
+ * @return {Path}         The list of edges and nodes taken.
  */
 Graph.prototype.A_Star = function(start, turn, pawn) {
 	// Compute the nearest exit
@@ -639,7 +588,7 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 			// If we haven't visited the next node && node is empty 
 			var next_node = path.node.edges[i].getOther(path.node);
 
-			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn, path.turn, pawn)) {
+			if(!visited.contains(next_node) && !next_node.spawn && next_node.isEmpty(turn + path.turn, pawn)) {
 				visited.push(next_node);
 				stack.push(path.nextStep(path.node.edges[i], next_node));
 			}
@@ -648,7 +597,7 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 
 	// Unregister the previous path of the node, then
 	// register the new one on the graph.
-	this.unregisterPath(pawn.path, pawn, turn - 1);
+	this.unregisterPath(pawn.path, pawn);
 	this.registerPath(stack.peek(), pawn, turn);
 	return stack.pop();
 };
@@ -663,6 +612,7 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 Graph.prototype.registerPath = function(path, pawn, turn) {
 
 	// TODO : optimise
+	//        real values in path
 	if(path) {
 		var nodes = path.getPath();
 		// Path
@@ -670,7 +620,7 @@ Graph.prototype.registerPath = function(path, pawn, turn) {
 			if(nodes[j] instanceof Node && !nodes[j].exit) {
 
 				// Lock the node for the next turn
-				nodes[j].setPrevisions(turn, k, pawn);
+				nodes[j].setPrevisions(turn + k, pawn);
 				k += 1;
 
 				// Lock for the time to wait on the node
@@ -678,7 +628,7 @@ Graph.prototype.registerPath = function(path, pawn, turn) {
 				var time_to_wait = nodes[j].pawn == pawn ? pawn.time_to_wait : nodes[j].value;
 
 				for(var l = 0; l < time_to_wait; l++) {
-					nodes[j].setPrevisions(turn, k, pawn);
+					nodes[j].setPrevisions(turn + k, pawn);
 					k += 1;
 				}
 			}
@@ -686,7 +636,7 @@ Graph.prototype.registerPath = function(path, pawn, turn) {
 	} else {
 		// Lock the current node for the next turn
 		if(pawn.node)
-			pawn.node.setPrevisions(turn, 1, pawn);
+			pawn.node.setPrevisions(turn + 1, pawn);
 	}
 };
 
@@ -697,24 +647,22 @@ Graph.prototype.registerPath = function(path, pawn, turn) {
  * @param  {Pawn} pawn   The pawn which has the path to erase.
  * @param  {number} turn The turn to erase at.
  */
-Graph.prototype.unregisterPath = function(path, pawn, turn) {
+Graph.prototype.unregisterPath = function(path, pawn) {
 
 	// TODO : optimise
 	if(path) {
-		var nodes = path.getPath();
-		// Path
-		for(var j = 0; j < nodes.length; j++) {
-			var node = nodes[j];
-
-			if(node instanceof Node && node.prevision_path[turn]) {
-				for (prevision_turn in node.prevision_path[turn]) {
-					// If this is the pawn to unregister, unregister it.
-					if(node.prevision_path[turn][prevision_turn] == pawn) {
-						node.prevision_path[turn][prevision_turn] = undefined;
-					}
+		do {
+			// For each prevision in the node
+			for (turn in path.node.prevision_path) {
+				// If this is the pawn to unregister, unregister it.
+				if(path.node.prevision_path[turn] == pawn) {
+					path.node.prevision_path[turn] = undefined;
 				}
 			}
-		}
+
+		} while((path = path.previous) != null);
+
+		return;
 	}
 };
 
