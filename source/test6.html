@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test window</title>
+	<style type="text/css">
+
+		body {
+			font-family: verdana;
+		}
+
+		.hello {
+			display: none;
+		}
+
+		.window_back {
+			position: fixed;
+			font-family: Arial, Helvetica, sans-serif;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			z-index: 99999;
+		}
+
+		.window_frame {
+			padding: 15px;
+
+			position: relative;
+			margin: 10% auto;
+			width: 700px;
+
+			background-color: white;
+			box-shadow: 3px 3px 5px 1px #ccc;
+			border: 2px #aaa solid;
+			border-radius: 4px;
+
+			-webkit-animation-duration: 0.75s; 
+			animation-duration: 0.75s; 
+			-webkit-animation-fill-mode: both; 
+			animation-fill-mode: both;
+		    -webkit-backface-visibility: visible !important; 
+		    -webkit-animation-name: wiggle; 
+		    backface-visibility: visible !important; 
+		    animation-name: wiggle; 
+		}
+
+		.close {
+			background: #606061;
+			color: #FFFFFF;
+			line-height: 25px;
+			position: absolute;
+			right: -12px;
+			text-align: center;
+			top: -10px;
+			width: 24px;
+			text-decoration: none;
+			font-weight: bold;
+			border-radius: 12px;
+			box-shadow: 1px 1px 3px #000;
+		}
+
+		.close:hover {
+			background: darkblue;
+			cursor: pointer;
+		}
+
+		@-webkit-keyframes wiggle { 
+		    0% { -webkit-transform: skewX(9deg); } 
+		    10% { -webkit-transform: skewX(-8deg); } 
+		    20% { -webkit-transform: skewX(7deg); } 
+		    30% { -webkit-transform: skewX(-6deg); } 
+		    40% { -webkit-transform: skewX(5deg); } 
+		    50% { -webkit-transform: skewX(-4deg); } 
+		    60% { -webkit-transform: skewX(3deg); } 
+		    70% { -webkit-transform: skewX(-2deg); } 
+		    80% { -webkit-transform: skewX(1deg); } 
+		    90% { -webkit-transform: skewX(0deg); } 
+		    100% { -webkit-transform: skewX(0deg); } 
+		} 
+
+		@keyframes wiggle { 
+		    0% { transform: skewX(9deg); } 
+		    10% { transform: skewX(-8deg); } 
+		    20% { transform: skewX(7deg); } 
+		    30% { transform: skewX(-6deg); } 
+		    40% { transform: skewX(5deg); } 
+		    50% { transform: skewX(-4deg); } 
+		    60% { transform: skewX(3deg); } 
+		    70% { transform: skewX(-2deg); } 
+		    80% { transform: skewX(1deg); } 
+		    90% { transform: skewX(0deg); } 
+		    100% { transform: skewX(0deg); } 
+		} 
+	</style>
+</head>
+<body>
+	<div class="hello"><h1> hello </h1><p> I am the frame content </p></div>
+	<a href="#" class="window" target=".hello">Click me</a>
+	<!--
+	<div class="window_back">
+		<div class="window_frame">
+			<a class="close">X</a>
+			<h1> hello </h1>
+			<p> I am the frame content </p>
+		</div>
+	</div>
+	-->
+	<a href="#" class="window" target=".hello">Click me also</a>
+
+<script type="text/javascript">
+	
+	function openWindow(e) {
+		console.log(e.target.getAttribute("target"));
+
+		var selector = e.target.getAttribute("target");
+		var dest = document.querySelectorAll(selector)[0];
+
+		if(dest) {
+			// Create the nodes
+			var elements = dest.childNodes;
+			var window_back = document.createElement("div");
+			var window_frame = document.createElement("div");
+			var window_close = document.createElement("a");
+
+			// Classes
+			window_back.className = "window_back";
+			window_frame.className = "window_frame";
+			window_close.className = "close";
+			window_close.innerHTML = "X";
+
+			// Closing event
+			window_close.onclick = function(e) {
+				// Give back all the nodes to the element
+				while (window_frame.childNodes.length > 0) {
+					dest.appendChild(window_frame.childNodes[0]);
+				}
+
+				// Delete everything
+				window_back.remove();
+			}
+
+			window_back.onclick = window_close.onclick;
+			window_frame.onclick = function(e) {
+				e.stopPropagation();
+			}
+
+			// Add the content here
+			while (elements.length > 0) {
+				window_frame.appendChild(elements[0]);
+			}
+			window_frame.appendChild(window_close);
+			window_back.appendChild(window_frame);
+
+			// Add on the window
+			document.body.appendChild(window_back);
+		}
+
+		return false;
+	}
+
+	var elems = document.getElementsByClassName("window");
+
+	for (var i = elems.length - 1; i >= 0; i--) {
+		elems[i].onclick = openWindow;
+	};
+
+function errorHandler(e) {
+	console.log("error");
+	console.log(e);
+}
+
+function save(filename, content) {
+	var pom = document.createElement('a');
+	pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+	pom.setAttribute('download', filename);
+	pom.click();
+}
+
+function exporttext() {
+	var popup = window.open('data:text;charset=utf-8,' + escape("hello\nhow it is\n??"));
+}
+
+
+exporttext();
+
+</script>
+</body>
+</html>

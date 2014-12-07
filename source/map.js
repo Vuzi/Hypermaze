@@ -8,7 +8,13 @@ Map = function(context, terrain, tileset) {
 	this.ctx = context;
 	this.terrain = terrain;
 	this.tileset = tileset;
+};
 
+/**
+ * Init the content of the map. Should be call if any important value is changed.
+ * @return {Map} Return itself.
+ */
+Map.prototype.init = function() {
 	this.height = this.terrain.length;
 	this.width = this.terrain[0].length;
 
@@ -16,6 +22,8 @@ Map = function(context, terrain, tileset) {
 	this.canvas.width = this.getWidth();
 	this.canvas.height = this.getHeight();
 	this.cached = false;
+
+	return this;
 };
 
 /**

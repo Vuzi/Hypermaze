@@ -213,15 +213,6 @@ Edge.prototype.equals = function(edge) {
  * @param {boolean} avoid_corner If true, avoid corners path when creating the graph.
  */
 Graph = function(data, avoid_corner) {
-	// All the edges and nodes
-	this.edges = [];
-	this.nodes = [];
-
-	// Special nodes (also referenced in the nodes array)
-	this.spawns = [];
-	this.exits = [];
-	this.checkpoints = [];
-
 	this.init(data, (typeof avoid_corner !== 'undefined' ? avoid_corner : true));
 };
 
@@ -260,6 +251,16 @@ Graph.prototype.node_definitions = {
  * @param {boolean} avoid_corner If true, avoid corners path when creating the graph.
  */
 Graph.prototype.init = function(data, avoid_corner) {
+	
+	// All the edges and nodes
+	this.edges = [];
+	this.nodes = [];
+
+	// Special nodes (also referenced in the nodes array)
+	this.spawns = [];
+	this.exits = [];
+	this.checkpoints = [];
+
 	// First pass, create all the nodes
 	for (var i = 0; i < data.length; i++) {
 		for (var j = 0; j < data[i].length; j++) {
@@ -363,11 +364,11 @@ Graph.prototype.getEdgeByNodes = function(nodeA, nodeB) {
 /**
  * Draw the path on the given path on the graph.
  */
-Graph.prototype.debugDrawPath = function(path, tile_size, ctx) {
+Graph.prototype.debugDrawPath = function(path, tile_size, canvas) {
 	
 	var half_size = tile_size / 2;
-
 	var x, y, x1, y1, x2, y2;
+	var ctx = canvas.getContext("2d");
 
 	// Draw the path
 	if(path) {
@@ -431,81 +432,98 @@ Graph.prototype.debugDrawPath = function(path, tile_size, ctx) {
 };
 
 /**
+ * Reset the cached debug draw.
+ */
+Graph.prototype.debugResetDraw = function() {
+	delete this.nodes_debug;
+}
+
+/**
  * Draw the view of the map.
  */
-Graph.prototype.debugDraw = function(tile_size, ctx) {
+Graph.prototype.debugDraw = function(tile_size, canvas) {
 	
 	var half_size = tile_size / 2;
-
 	var x, y, x1, y1, x2, y2;
+	var ctx_dest = canvas.getContext("2d");
 
-	// Draw the edges
-	for (var i = this.edges.length - 1; i >= 0; i--) {
-		var edge = this.edges[i];
+	if(!this.nodes_debug) {
 
-		x1 = edge.nodeA.y * tile_size + half_size;
-		y1 = edge.nodeA.x * tile_size + half_size;
+		this.nodes_debug = document.createElement('canvas');
+		this.nodes_debug.width = canvas.width;
+		this.nodes_debug.height = canvas.height;
+		var ctx = this.nodes_debug.getContext("2d");
 
-		x2 = edge.nodeB.y * tile_size + half_size;
-		y2 = edge.nodeB.x * tile_size + half_size;
+		// Draw the edges
+		for (var i = this.edges.length - 1; i >= 0; i--) {
+			var edge = this.edges[i];
 
-		ctx.beginPath();
-		ctx.moveTo(x1, y1);
-		ctx.lineTo(x2, y2);
-		ctx.lineWidth = 2;
-		ctx.strokeStyle = '#333';
-		ctx.stroke();
-		ctx.closePath();
+			x1 = edge.nodeA.y * tile_size + half_size;
+			y1 = edge.nodeA.x * tile_size + half_size;
+
+			x2 = edge.nodeB.y * tile_size + half_size;
+			y2 = edge.nodeB.x * tile_size + half_size;
+
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = '#333';
+			ctx.stroke();
+			ctx.closePath();
+		}
+
+		// Draw the nodes
+		for (var j = this.nodes.length - 1; j >= 0; j--) {
+			var node = this.nodes[j];
+
+			x = node.y * tile_size + half_size;
+			y = node.x * tile_size + half_size;
+
+			ctx.beginPath();
+			ctx.arc(x, y, 10, 0, 2*Math.PI, false);
+
+			if(node.isSpawn())
+				ctx.fillStyle = 'lightblue';
+			else if(node.isExit())
+				ctx.fillStyle = 'pink';
+			else if(node.isCheckpoint())
+				ctx.fillStyle = 'yellow';
+			else if(node.value === 0)
+				ctx.fillStyle = 'lightgreen';
+			else if(node.value == 1)
+				ctx.fillStyle = "orange";
+			else
+				ctx.fillStyle = 'red';
+
+			ctx.fill();
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = '#333';
+			ctx.stroke();
+			ctx.closePath();
+
+			ctx.beginPath();
+
+			ctx.fillStyle = 'black';
+			ctx.font = "12px Arial";
+
+			if(node.isSpawn())
+				ctx.fillText("S", x-3, y+3);
+			else if(node.isExit())
+				ctx.fillText("E", x-3, y+3);
+			else if(node.isCheckpoint())
+				ctx.fillText("C"+node.checkpoint, x-3, y+3);
+			else
+				ctx.fillText(node.value, x-3, y+3);
+
+			ctx.fillStyle = 'black';
+			ctx.font = "13px Arial";
+			ctx.fillText(node.y+"-"+node.x, x+10, y+12);
+			ctx.closePath();
+		}
 	}
 
-	// Draw the nodes
-	for (var j = this.nodes.length - 1; j >= 0; j--) {
-		var node = this.nodes[j];
-
-		x = node.y * tile_size + half_size;
-		y = node.x * tile_size + half_size;
-
-		ctx.beginPath();
-		ctx.arc(x, y, 10, 0, 2*Math.PI, false);
-
-		if(node.isSpawn())
-			ctx.fillStyle = 'lightblue';
-		else if(node.isExit())
-			ctx.fillStyle = 'pink';
-		else if(node.isCheckpoint())
-			ctx.fillStyle = 'yellow';
-		else if(node.value === 0)
-			ctx.fillStyle = 'lightgreen';
-		else if(node.value == 1)
-			ctx.fillStyle = "orange";
-		else
-			ctx.fillStyle = 'red';
-
-		ctx.fill();
-		ctx.lineWidth = 2;
-		ctx.strokeStyle = '#333';
-		ctx.stroke();
-		ctx.closePath();
-
-		ctx.beginPath();
-
-		ctx.fillStyle = 'black';
-		ctx.font = "12px Arial";
-
-		if(node.isSpawn())
-			ctx.fillText("S", x-3, y+3);
-		else if(node.isExit())
-			ctx.fillText("E", x-3, y+3);
-		else if(node.isCheckpoint())
-			ctx.fillText("C"+node.checkpoint, x-3, y+3);
-		else
-			ctx.fillText(node.value, x-3, y+3);
-
-		ctx.fillStyle = 'black';
-		ctx.font = "13px Arial";
-		ctx.fillText(node.y+"-"+node.x, x+10, y+12);
-		ctx.closePath();
-	}
+	ctx_dest.drawImage(this.nodes_debug, 0, 0);
 };
 
 /**
