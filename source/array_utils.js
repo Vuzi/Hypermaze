@@ -31,3 +31,7 @@ Array.prototype.remove = function(i) {
 Array.prototype.random = function() {
 	return this[~~(Math.random()*this.length)];
 };
+
+String.prototype.replaceAt=function(index, character) {
+    return this.substr(0, index) + character + this.substr(index+character.length);
+};

@@ -14,6 +14,7 @@ CanvasHandler = function(canvas, content) {
 	this.scaled_content = document.createElement('canvas');
 	this.scaled_usable = false;
 	this.content = content;
+	this.locked = false;
 
 	// Try to desactivate the smoothing
 	this.canvas.getContext("2d").imageSmoothingEnabled = false;
@@ -26,6 +27,13 @@ CanvasHandler = function(canvas, content) {
 	this.reset();
 	this.initEvents();
 };
+
+CanvasHandler.prototype.lock = function(locked) {
+	if(locked)
+		this.locked = true;
+	else
+		this.locked = false;
+}
 
 /**
  * Init the event handlers.
@@ -46,7 +54,7 @@ CanvasHandler.prototype.initEvents = function() {
 
 	canvas.onmousemove = function(e) {
 		// Move
-		if(clicked) {
+		if(clicked && !me.locked) {
 			if((e.x !== 0 && e.y !== 0) && (e.offsetX != x || e.offsetY != y)) {
 				me.x += e.offsetX - x;
 				me.y += e.offsetY - y;
@@ -64,11 +72,13 @@ CanvasHandler.prototype.initEvents = function() {
 	};
 
 	canvas.onwheel = function(e) {
-		var val = e.details ? (e.details / 100) : (e.wheelDelta / 12000);
+		if(!me.locked) {
+			var val = e.details ? (e.details / 100) : (e.wheelDelta / 12000);
 
-		me.zoomIn(val, e.offsetX, e.offsetY);
+			me.zoomIn(val, e.offsetX, e.offsetY);
+			return false;
+		}
 
-		return false;
 	};
 
     canvas.addEventListener('contextmenu', function(e) {

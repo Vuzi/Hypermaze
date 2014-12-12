@@ -123,6 +123,31 @@
 			margin: 10px;
 			margin-top: -13px;
 			width: 1490px;
+			font-size: 80%;
+		}
+
+		#canvas_controls input[type=checkbox] {
+			margin-top: 10px;
+		}
+
+		#palette {
+			margin: 5px;
+			margin-left: 10px;
+		    border: 5px solid #ddd;
+			border-radius: 2px;
+			width: 1500px;
+		}
+
+		#palette div {
+			float: right;
+			padding: 10px;
+		}
+
+		#palette_selector {
+			height: 64px;
+			width: 64px;
+			border: 1px solid red;
+			position: absolute;
 		}
 
 		.hidden {
@@ -158,11 +183,20 @@
 			<button class="button" id="zoomIn">+</button>
 			<button class="button" id="zoomOut">-</button>
 			<button class="button" id="zoomReset">Reset</button>
+			<input type="checkbox" value="" id="lock"> Lock
+		</div>
+	</div>
+	<div id="palette" draggable="false">
+		<div id="palette_selector"></div>
+		<div>
+			<button class="button large" id="editMap">Clear selection</button>
+			<button class="button large" id="editMap">Stop editing</button>
 		</div>
 	</div>
 	<div id="loading">
 		<button class="button large window" target="#map_loader" id="changeMap">Load map</button>
-		<button class="button large" id="saveMap">Download current map</button>
+		<button class="button large" id="saveMap">Download the current map</button>
+		<button class="button large" id="editMap">Edit the current map</button>
 		<div class="hidden" id="map_loader">
 			<h1>Load using file :</h1>
 			<input type="file" name="map_file" id="map_file">
@@ -261,6 +295,25 @@
 		};
 		var tileset = new Tileset(loader.get("floor.png"), 64, coords);
 
+		var selected_palette = null;
+
+		document.getElementById('palette').appendChild(loader.get("floor.png"));
+		document.getElementById('palette').onclick = function(e) {
+			var val = tileset.getTileValue(e.offsetX, e.offsetY);
+
+			if(val != null) {
+				console.log(val);
+
+				selected_palette = val.value;
+
+				// Show the selected element
+				document.getElementById('palette_selector').style.left = val.x + document.getElementById('palette').offsetLeft + 'px';// ;
+				document.getElementById('palette_selector').style.top = val.y + document.getElementById('palette').offsetTop + 'px';// + document.getElementById('palette').offsetLeft;
+			} else {
+				selected_palette = null;
+			}
+		}
+
 		// Caracter values
 		var male_heads = [ { x : 0 , y : 0 }, { x : 32, y : 0 }, { x : 64, y : 0 },
 		                   { x : 0 , y : 32}, { x : 32, y : 32}, { x : 64, y : 32}, 
@@ -320,6 +373,11 @@
 			drawer.updateDisplay(true);
 		};
 
+
+		document.getElementById('lock').onclick = function() {
+			drawer.lock(document.getElementById('lock').checked);
+		};
+
 		// Launch the new game
 		var game = new Game(g, map, caracters, true);
 
@@ -344,6 +402,17 @@
 		game.needredraw = needredraw;
 		document.getElementById('debug').onclick = needredraw;
 		document.getElementById('background').onclick = needredraw;
+
+		drawer.onclick = function(x, y, e) {
+			var coords = map.getCoords(x, y);
+
+			if(selected_palette != null) {
+				map.terrain[coords.y] = map.terrain[coords.y].replaceAt(coords.x, selected_palette);
+				map.reset();
+
+				needredraw();
+			}
+		};
 
 		game.new_pawn = function(pawn) {
 			//console.log("New pawn created ! (" + pawn.id + ")" );

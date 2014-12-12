@@ -53,6 +53,13 @@ Map.prototype.getHeight = function() {
 };
 
 /**
+ * Reset the cached display
+ */
+Map.prototype.reset = function() {
+	delete this.cached;
+};
+
+/**
  * Draw the background map.
  * @param  {boolean} force If true, don't use the cached image.
  */
