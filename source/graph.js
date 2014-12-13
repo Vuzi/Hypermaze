@@ -585,8 +585,8 @@ Graph.prototype.A_Star = function(start, turn, pawn) {
 
 	// Create the stack & visited nodes
 	var stack = new OrderedStack(function(path1, path2) {
-		var dist1 = path1.node.distanceFrom(dest);
-		var dist2 = path2.node.distanceFrom(dest);
+		var dist1 = path1.node.distanceFrom(dest) / 4;
+		var dist2 = path2.node.distanceFrom(dest) / 4;
 
 		if(path1.value + dist1 > path2.value + dist2)
 			return 1;
