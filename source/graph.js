@@ -261,6 +261,8 @@ Graph.prototype.init = function(data, avoid_corner) {
 	this.exits = [];
 	this.checkpoints = [];
 
+	delete this.nodes_debug;
+
 	// First pass, create all the nodes
 	for (var i = 0; i < data.length; i++) {
 		for (var j = 0; j < data[i].length; j++) {

@@ -136,11 +136,13 @@
 		    border: 5px solid #ddd;
 			border-radius: 2px;
 			width: 1500px;
+			display: none;
 		}
 
 		#palette div {
 			float: right;
 			padding: 10px;
+			text-align: right;
 		}
 
 		#palette_selector {
@@ -148,6 +150,8 @@
 			width: 64px;
 			border: 1px solid red;
 			position: absolute;
+			top: -999px;
+			left: -999px;
 		}
 
 		.hidden {
@@ -189,14 +193,15 @@
 	<div id="palette" draggable="false">
 		<div id="palette_selector"></div>
 		<div>
-			<button class="button large" id="editMap">Clear selection</button>
-			<button class="button large" id="editMap">Stop editing</button>
+			<button class="button large" id="clear_palette">Clear selection</button>
+			<button class="button large" id="stop_edit">Stop editing</button>
+			<p>Select any tile to apply in the current displayed map.<br/>Note that change(s) will only be applied at game restart if running.</p>
 		</div>
 	</div>
 	<div id="loading">
 		<button class="button large window" target="#map_loader" id="changeMap">Load map</button>
 		<button class="button large" id="saveMap">Download the current map</button>
-		<button class="button large" id="editMap">Edit the current map</button>
+		<button class="button large" id="edit_map">Edit the current map</button>
 		<div class="hidden" id="map_loader">
 			<h1>Load using file :</h1>
 			<input type="file" name="map_file" id="map_file">
@@ -223,8 +228,7 @@
 
 <script type="text/javascript">
 
-	// Save map button
-
+	// Save function
 	function save(filename, content) {
 		var pom = document.createElement('a');
 		pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
@@ -295,10 +299,11 @@
 		};
 		var tileset = new Tileset(loader.get("floor.png"), 64, coords);
 
+		// Palette image
 		var selected_palette = null;
-
-		document.getElementById('palette').appendChild(loader.get("floor.png"));
-		document.getElementById('palette').onclick = function(e) {
+		var palette_image = loader.get("floor.png");
+		document.getElementById('palette').appendChild(palette_image);
+		palette_image.onclick = function(e) {
 			var val = tileset.getTileValue(e.offsetX, e.offsetY);
 
 			if(val != null) {
@@ -373,7 +378,6 @@
 			drawer.updateDisplay(true);
 		};
 
-
 		document.getElementById('lock').onclick = function() {
 			drawer.lock(document.getElementById('lock').checked);
 		};
@@ -410,8 +414,19 @@
 				map.terrain[coords.y] = map.terrain[coords.y].replaceAt(coords.x, selected_palette);
 				map.reset();
 
+				g.init(map.terrain, true);
+
 				needredraw();
 			}
+		};
+
+		document.getElementById('clear_palette').onclick = function() {
+			selected_palette = null;
+
+			document.getElementById('palette_selector').style.top = "";
+			document.getElementById('palette_selector').style.left = "";
+		
+			console.log(document.getElementById('palette_selector').style.top);
 		};
 
 		game.new_pawn = function(pawn) {
@@ -479,10 +494,26 @@
 			}
 		};
 
+		// Edit launcher
+		document.getElementById('stop_edit').onclick = document.getElementById('edit_map').onclick = function(e) {
+			selected_palette = null;
+
+			document.getElementById('palette_selector').style.top = "";
+			document.getElementById('palette_selector').style.left = "";
+
+			if(document.getElementById('palette').style.display == "none" || document.getElementById('palette').style.display == "") {
+				document.getElementById('palette').style.display = "block";
+				document.getElementById('edit_map').innerHTML = "Stop editing";
+			} else {
+				document.getElementById('palette').style.display = "none";
+				document.getElementById('edit_map').innerHTML = "Edit the current map";
+			}
+		};
+
 		// Save map binding
 		document.getElementById('saveMap').onclick = function(e) {
 			save("map.txt", map.terrain.join('\r\n'));
-		}
+		};
 
 		// Load a new map (text)
 		document.getElementById('map_text_load').onclick = function(e) {
@@ -495,7 +526,7 @@
 
 			needredraw();
 			document.getElementById('map_text').value = "";
-		}
+		};
 
 		// Load a new map (file)
 		document.getElementById('map_file_load').onclick = function(e) {
@@ -519,7 +550,7 @@
 			}
 
 			document.getElementById('map_text').files = [];
-		}
+		};
 
 	};
 
