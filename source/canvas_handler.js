@@ -28,6 +28,10 @@ CanvasHandler = function(canvas, content) {
 	this.initEvents();
 };
 
+/**
+ * Lock the canvas
+ * @param  {boolean} locked True if locked, false otherwise
+ */
 CanvasHandler.prototype.lock = function(locked) {
 	if(locked)
 		this.locked = true;
@@ -47,20 +51,20 @@ CanvasHandler.prototype.initEvents = function() {
 	var clicked = false;
 
 	canvas.onmousedown = function(e) {
-		x = e.offsetX;
-		y = e.offsetY;
+		x = (e.offsetX ? e.offsetX : e.layerX);
+		y = (e.offsetY ? e.offsetY : e.layerY);
 		clicked = true;
 	};
 
 	canvas.onmousemove = function(e) {
 		// Move
 		if(clicked && !me.locked) {
-			if((e.x !== 0 && e.y !== 0) && (e.offsetX != x || e.offsetY != y)) {
-				me.x += e.offsetX - x;
-				me.y += e.offsetY - y;
+			if((e.x !== 0 && e.y !== 0) && ((e.offsetX ? e.offsetX : e.layerX) != x || (e.offsetY ? e.offsetY : e.layerY) != y)) {
+				me.x += (e.offsetX ? e.offsetX : e.layerX) - x;
+				me.y += (e.offsetY ? e.offsetY : e.layerY) - y;
 
-				x = e.offsetX;
-				y = e.offsetY;
+				x = (e.offsetX ? e.offsetX : e.layerX);
+				y = (e.offsetY ? e.offsetY : e.layerY);
 
 				me.updateDisplay();
 			}
@@ -80,7 +84,7 @@ CanvasHandler.prototype.initEvents = function() {
 			else
 				var val = -e.deltaY / 120;
 
-			me.zoomIn(val, e.offsetX, e.offsetY);
+			me.zoomIn(val, (e.offsetX ? e.offsetX : e.layerX), (e.offsetY ? e.offsetY : e.layerY));
 			return false;
 		}
 
@@ -88,13 +92,13 @@ CanvasHandler.prototype.initEvents = function() {
 
     canvas.addEventListener('contextmenu', function(e) {
 		if(me.onrightclick)
-			me.onrightclick(~~((e.offsetX - me.x) / me.zoom), ~~((e.offsetY - me.y) / me.zoom), e);
+			me.onrightclick(~~(((e.offsetX ? e.offsetX : e.layerX) - me.x) / me.zoom), ~~(((e.offsetY ? e.offsetY : e.layerY) - me.y) / me.zoom), e);
         e.preventDefault();
     }, false);
 
 	canvas.onclick = function(e) {
 		if(me.onclick)
-			me.onclick(~~((e.offsetX - me.x) / me.zoom), ~~((e.offsetY - me.y) / me.zoom), e);
+			me.onclick(~~(((e.offsetX ? e.offsetX : e.layerX) - me.x) / me.zoom), ~~(((e.offsetY ? e.offsetY : e.layerY) - me.y) / me.zoom), e);
 	};
 };
 

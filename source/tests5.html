@@ -304,7 +304,7 @@
 		var palette_image = loader.get("floor.png");
 		document.getElementById('palette').appendChild(palette_image);
 		palette_image.onclick = function(e) {
-			var val = tileset.getTileValue(e.offsetX, e.offsetY);
+			var val = tileset.getTileValue((e.offsetX ? e.offsetX : e.layerX), (e.offsetY ? e.offsetY : e.layerY));
 
 			if(val != null) {
 				selected_palette = val.value;
