@@ -1,15 +1,558 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Hypermaze</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Test (5) !</title>
+	<!-- Window system CSS -->
+	<link rel="stylesheet" type="text/css" href="window.css">
+	<!-- General CSS -->
+	<style type="text/css">
+
+
+		.button {
+		    position: relative;
+		    overflow: visible;
+		    display: inline-block;
+		    padding: 0.5em 1em;
+		    border: 1px solid #d4d4d4;
+		    margin: 0;
+		    text-decoration: none;
+		    text-align: center;
+		    text-shadow: 1px 1px 0 #fff;
+		    font:11px/normal sans-serif;
+		    color: #333;
+		    white-space: nowrap;
+		    cursor: pointer;
+		    outline: none;
+		    background-color: #ececec;
+		    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f4f4f4), to(#ececec));
+		    background-image: -moz-linear-gradient(#f4f4f4, #ececec);
+		    background-image: -ms-linear-gradient(#f4f4f4, #ececec);
+		    background-image: -o-linear-gradient(#f4f4f4, #ececec);
+		    background-image: linear-gradient(#f4f4f4, #ececec);
+		    -moz-background-clip: padding; /* for Firefox 3.6 */
+		    background-clip: padding-box;
+		    border-radius: 0.2em;
+		    /* IE hacks */
+		    zoom: 1;
+		    *display: inline;
+		}
+
+		.button:hover {
+		    border-color: #3072b3;
+		    border-bottom-color: #2a65a0;
+		    text-decoration: none;
+		    text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
+		    color: #fff;
+		    background-color: #3c8dde;
+		    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#599bdc), to(#3072b3));
+		    background-image: -moz-linear-gradient(#599bdc, #3072b3);
+		    background-image: -o-linear-gradient(#599bdc, #3072b3);
+		    background-image: linear-gradient(#599bdc, #3072b3);
+		}
+
+		.button:focus {
+		    border-color: #3072b3;
+		    border-bottom-color: #2a65a0;
+		    text-decoration: none;
+		}
+
+		.button:active {
+		    border-color: #2a65a0;
+		    border-bottom-color: #3884cd;
+		    background-color: #3072b3;
+		    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#3072b3), to(#599bdc));
+		    background-image: -moz-linear-gradient(#3072b3, #599bdc);
+		    background-image: -ms-linear-gradient(#3072b3, #599bdc);
+		    background-image: -o-linear-gradient(#3072b3, #599bdc);
+		    background-image: linear-gradient(#3072b3, #599bdc);
+		}
+
+		/* overrides extra padding on button elements in Firefox */
+		.button::-moz-focus-inner {
+		    padding: 0;
+		    border: 0;
+		}
+
+		.button[disabled] {
+			color: gray;
+		}
+
+		body {
+			font-family: verdana;
+		}
+
+		#controls, #loading {
+			border: 5px solid #ddd;
+			border-radius: 2px;
+			padding: 10px;
+			margin: 10px;
+			width: 1480px;
+		}
+
+		#launcher {
+			margin-top: 15px;
+		}
+
+		#launcher input[type="submit"], .button.large {
+			font-size: 105%;
+		}
+
+		#controls input[type="text"]{
+			width: 25px;
+		}
+
+		canvas {
+			margin: 10px;
+			image-rendering: optimizeSpeed;
+		    image-rendering: -moz-crisp-edges;
+		    image-rendering: -webkit-optimize-contrast;
+		    image-rendering: optimize-contrast;
+		    -ms-interpolation-mode: nearest-neighbor;
+		}
+
+		div > canvas{
+		    border: 5px solid #ddd;
+			border-radius: 2px;
+		}
+
+		#canvas_controls {
+			border: 5px solid #ddd;
+			border-radius: 2px;
+			border-top: 0px;
+			padding: 5px;
+			margin: 10px;
+			margin-top: -13px;
+			width: 1490px;
+			font-size: 80%;
+		}
+
+		#canvas_controls input[type=checkbox] {
+			margin-top: 10px;
+		}
+
+		#palette {
+			margin: 5px;
+			margin-left: 10px;
+		    border: 5px solid #ddd;
+			border-radius: 2px;
+			width: 1500px;
+			display: none;
+		}
+
+		#palette div {
+			float: right;
+			padding: 10px;
+			text-align: right;
+		}
+
+		#palette_selector {
+			height: 64px;
+			width: 64px;
+			border: 1px solid red;
+			position: absolute;
+			top: -999px;
+			left: -999px;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		#map_text {
+			width: 695px;
+			height: 100px;
+			resize: vertical;
+		}
+
+	</style>
 </head>
 <body>
-	<h1>Tests</h1>
-	<ul>
-		<li><a href="test_loader.html">Test of image loader</a></li>
-		<li><a href="tests3.html">Test of Djikstra + Image loading + Grap display/construction</a></li>
-		<li><a href="tests5.html">Test final ?</a></li>
-	</ul>
+	<div id="controls">
+		<form>
+			Number of pawns to load : <input type="text" id="pawns_nb" value="10">
+
+			<input type="checkbox" value="" id="debug"> Draw debug
+			<input type="checkbox" value="" id="background" checked="checked"> Draw background
+
+			<div id="launcher">
+				<input type="submit" class="button" value="Launch with timer (100ms)" id="launch">
+				<input type="submit" class="button" value="Launch" id="launch2">
+				<span id="timer"></span>
+			</div>
+		</form>
+	</div>
+	<div draggable="false">
+		<canvas id="canvas" width="1500" height="600"></canvas>
+		<div id="canvas_controls">
+			<button class="button" id="zoomIn">+</button>
+			<button class="button" id="zoomOut">-</button>
+			<button class="button" id="zoomReset">Reset</button>
+			<input type="checkbox" value="" id="lock"> Lock
+		</div>
+	</div>
+	<div id="palette" draggable="false">
+		<div id="palette_selector"></div>
+		<div>
+			<button class="button large" id="clear_palette">Clear selection</button>
+			<button class="button large" id="stop_edit">Stop editing</button>
+			<p>Select any tile to apply in the current displayed map.<br/>Note that change(s) will only be applied at game restart if running.</p>
+		</div>
+	</div>
+	<div id="loading">
+		<button class="button large window" target="#map_loader" id="changeMap">Load map</button>
+		<button class="button large" id="saveMap">Download the current map</button>
+		<button class="button large" id="edit_map">Edit the current map</button>
+		<div class="hidden" id="map_loader">
+			<h1>Load using file :</h1>
+			<input type="file" name="map_file" id="map_file">
+			<button class="button large close" id="map_file_load">Load file</button>
+			<h1>Load using text :</h1>
+			<textarea placeholder="Enter the map here, each line being a row..." id="map_text"></textarea>
+			<button class="button large close" id="map_text_load">Load from text</button>
+		</div>
+	</div>
+
+	<div id="stats"></div>
+
+<script type="text/javascript" src="array_utils.js"></script>
+<script type="text/javascript" src="image_loader.js"></script>
+<script type="text/javascript" src="canvas_handler.js"></script>
+<script type="text/javascript" src="ordered_stack.js"></script>
+<script type="text/javascript" src="tileset.js"></script>
+<script type="text/javascript" src="pawns_handler.js"></script>
+<script type="text/javascript" src="map.js"></script>
+<script type="text/javascript" src="graph.js"></script>
+<script type="text/javascript" src="game.js"></script>
+<script type="text/javascript" src="stat.js"></script>
+<script type="text/javascript" src="window.js"></script>
+
+<script type="text/javascript">
+
+	// Save function
+	function save(filename, content) {
+		var pom = document.createElement('a');
+		pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+		pom.setAttribute('download', filename);
+		pom.click();
+	}
+
+	// Load images
+	var map_stylesheet = "floor.png";
+	var car_stylesheet = "characters.png";
+
+	var loader = new ImageLoader([ map_stylesheet, car_stylesheet ]);
+	loader.onload = function(images) {
+
+		// Context
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext("2d");
+
+		// Map values
+		var map_raw = 
+		   ["***************AA**********AA*******************",
+			"*      *              *                        *",
+			"* **    *   ********** *             *   *     *",
+			"* **    *     *      * * *******     *****     *",
+			"*  *    ****  * G*   *   GGG      *  *         *",
+			"*  *        *  * G*   *******     *  ******    *",
+			"*               GG* *       *     *       **   *",
+			"*****G********************  *  ********   *    *",
+			"*  GGGG  * GGGG   *         *         *   *  * *",
+			"* *** GG * G*G*****  ***    ******    *   *    *",
+			"*GGGGGG  * G*G*       *          *    *   **   *",
+			"* G****  *        *************  ******   *    *",
+			"* GGGGGGGGG *          GGGG  *           *     *",
+			"****** ******     ****  GGGG  *      ********  *",
+			"*           *     *       GGG *      333333    *",
+			"*  ******   *                                  *",
+			"*   *                     111 111              *",
+			"*           *                                  *",
+			"******DD******************************DDD*******",
+			"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"];
+		var coords = {
+			" "  : [ { x : 0, y : 128}, { x : 0, y : 128}, { x : 64, y : 128 }, { x : 128, y : 128 }, { x : 128, y : 128 }, { x : 128, y : 128 }, { x : 192, y : 128 }, { x : 256, y : 128 } ], 
+			"*"  : {x: 448, y: 0 },
+			"*0" : {x: 448, y: 0 },
+			"*1" : {x: 256, y: 0 },
+			"*2" : {x: 128, y: 0 },
+			"*3" : {x: 0  , y: 64},
+			"*4" : {x: 64 , y: 0 },
+			"*5" : {x: 384, y: 0 },
+			"*6" : {x: 128, y: 64},
+			"*7" : {x: 448, y: 64},
+			"*8" : {x: 192, y: 0 },
+			"*9" : {x: 64 , y: 64},
+			"*10": {x: 320, y: 0 },
+			"*11": {x: 256, y: 64},
+			"*12": {x: 192, y: 64},
+			"*13": {x: 320, y: 64},
+			"*14": {x: 384, y: 64},
+			"*15": {x: 0  , y: 0 },
+			"G"  : {x: 0  , y: 192},
+			"D"  : {x: 128, y: 256},
+			"P"  : {x: 128, y: 192},
+			"A"  : {x: 0  , y: 256},
+			"C"  : [ {x: 0  , y: 384}, {x:  64, y : 384}, {x : 0, y : 448}, {x :  64, y : 448}, {x : 128, y : 448}, {x : 192, y : 448}, {x : 256, y : 448}, {x : 320, y : 448} ],
+			"1"  : [ {x: 192, y: 384}, {x: 256, y : 384} ],
+			"2"  : {x: 320, y : 384},
+			"3"  : [ {x: 384, y: 384}, {x: 448, y : 384} ]
+		};
+		var tileset = new Tileset(loader.get("floor.png"), 64, coords);
+
+		// Palette image
+		var selected_palette = null;
+		var palette_image = loader.get("floor.png");
+		document.getElementById('palette').appendChild(palette_image);
+		palette_image.onclick = function(e) {
+			var val = tileset.getTileValue((e.offsetX ? e.offsetX : e.layerX), (e.offsetY ? e.offsetY : e.layerY));
+
+			if(val != null) {
+				selected_palette = val.value;
+
+				// Show the selected element
+				document.getElementById('palette_selector').style.left = val.x + document.getElementById('palette').offsetLeft + 'px';
+				document.getElementById('palette_selector').style.top = val.y + document.getElementById('palette').offsetTop + 'px';
+			} else {
+				selected_palette = null;
+			}
+		}
+
+		// Caracter values
+		var male_heads = [ { x : 0 , y : 0 }, { x : 32, y : 0 }, { x : 64, y : 0 },
+		                   { x : 0 , y : 32}, { x : 32, y : 32}, { x : 64, y : 32}, 
+		                   { x : 0 , y : 64}, { x : 32, y : 64},
+		                   { x : 0 , y : 96}, { x : 32, y : 96},
+		                   { x : 0 , y :128}, { x : 32, y :128}, { x : 64, y :128}, 
+		                   { x : 0 , y :128}, { x : 32, y :128}, { x : 64, y :128}, 
+		                   { x : 0 , y :161}, { x : 32, y :161}, { x : 64, y :161}, 
+		                   { x : 0 , y :192}, { x : 32, y :192}, { x : 64, y :192}, 
+		                   { x : 0 , y :224}, { x : 32, y :224}, { x : 64, y :224}, 
+		                   { x : 0 , y :256}, { x : 32, y :256}, { x : 64, y :224}
+		                   ];
+
+		var male_bodies = [ { x : 128, y : 0  }, {x : 192, y : 0  },
+							{ x : 128, y : 64 }, {x : 192, y : 64 },
+							{ x : 128, y : 128}, {x : 192, y : 128},
+							{ x : 128, y : 192}, {x : 192, y : 192},
+							{ x : 128, y : 256}, {x : 192, y : 256},
+							{ x : 128, y : 320}
+							];
+
+		var female_heads = [ { x : 64 , y : 64 }, { x : 64 , y : 96 }, { x : 64 , y : 128},
+							 { x : 64 , y : 288}, { x : 64 , y : 319}, { x : 64 , y : 351},
+							 { x : 32 , y : 415}, { x : 32 , y : 446}, { x : 32 , y : 477}
+							 ];
+
+		var female_bodies = [ { x : 192, y : 64 }, { x : 192, y : 192}, { x : 192, y : 319},
+		                      { x : 254, y : 319}
+		                      ];
+		var caracters = new PawnsHandler(ctx, loader.get("characters.png"), male_heads, female_heads, male_bodies, female_bodies, 32, 64);
+
+		// Create default map
+		var map = new Map(ctx, map_raw, tileset).init();
+
+		canvas.height = map.getHeight();
+		canvas.width = map.getWidth();
+		map.drawBackground();
+
+		// Canvas handler
+		var drawer = new CanvasHandler(document.getElementById("canvas"), canvas);
+		drawer.updateDisplay();
+
+	    // Create graph
+		var g = new Graph(map_raw, true);
+
+		// Events
+		document.getElementById('zoomIn').onclick = function() {
+			drawer.zoomIn();
+		};
+
+		document.getElementById('zoomOut').onclick = function() {
+			drawer.zoomOut();
+		};
+
+		document.getElementById('zoomReset').onclick = function() {
+			drawer.reset();
+			drawer.updateDisplay(true);
+		};
+
+		document.getElementById('lock').onclick = function() {
+			drawer.lock(document.getElementById('lock').checked);
+		};
+
+		// Launch the new game
+		var game = new Game(g, map, caracters, true);
+
+		needredraw = function() {
+			ctx.clearRect(0, 0, map.getWidth(), map.getHeight());
+
+			if(document.getElementById('background').checked) 
+				map.drawBackground();
+
+			if(document.getElementById('debug').checked)
+				g.debugDraw(tileset.tile_size, canvas);
+
+			if(selected)
+				g.debugDrawPath(selected.path, tileset.tile_size, canvas);
+			
+			for (var i = 0; game && i < game.pawns.length; i++)
+				caracters.draw(game.pawns[i], tileset, ctx);
+
+			drawer.updateDisplay(true);
+		};
+
+		game.needredraw = needredraw;
+		document.getElementById('debug').onclick = needredraw;
+		document.getElementById('background').onclick = needredraw;
+
+		drawer.onclick = function(x, y, e) {
+			var coords = map.getCoords(x, y);
+
+			if(selected_palette != null) {
+				map.terrain[coords.y] = map.terrain[coords.y].replaceAt(coords.x, selected_palette);
+				map.reset();
+
+				g.init(map.terrain, true);
+
+				needredraw();
+			}
+		};
+
+		document.getElementById('clear_palette').onclick = function() {
+			selected_palette = null;
+
+			document.getElementById('palette_selector').style.top = "";
+			document.getElementById('palette_selector').style.left = "";
+		};
+
+		game.new_pawn = function(pawn) {
+			//console.log("New pawn created ! (" + pawn.id + ")" );
+		};
+
+		game.pawn_exited = function(pawn) {
+			//console.log("Pawn exited ! (" + pawn.id + ")");
+		};
+
+		game.endgame = function() {
+			//console.log("End of the game !");
+			document.getElementById("launch").value = "Launch with timer (100ms)";
+			document.getElementById("launch2").value = "Launch";
+			document.getElementById("launch2").disabled = "";
+			document.getElementById("launch").disabled = "";
+
+			caracters.clear();
+
+			if(game.stats) {
+				document.getElementById("stats").innerHTML = "";
+				document.getElementById("stats").appendChild(game.stats.displayResults(1000, 500, 50));
+			}
+		};
+
+		document.getElementById("launch").onclick = function(e) {
+			if(game.running) {
+				game.pause();
+			} else {
+				game.launch(document.getElementById('pawns_nb').value, 150);
+				document.getElementById("launch").value = "Pause";
+				document.getElementById("launch2").disabled = "disabled";
+			}
+
+			return false;
+		};
+
+		document.getElementById("launch2").onclick = function(e) {
+			if(game.running) {
+				game.nextTurn();
+			} else {
+				game.launch(document.getElementById('pawns_nb').value);
+				document.getElementById("launch2").value = "Next turn";
+				document.getElementById("launch").disabled = "disabled";
+			}
+
+			return false;
+		};
+
+		var selected = null;
+
+		drawer.onrightclick = function(x, y, e) {
+			var pos = map.getCoords(y, x);
+			var node = g.getNodeAt(pos.x, pos.y);
+
+			if(node && node.pawn) {
+				if(selected == node.pawn)
+					selected = null;
+				else 
+					selected = node.pawn;
+				needredraw();
+			} else if(selected) {
+				selected = null;
+				needredraw();
+			}
+		};
+
+		// Edit launcher
+		document.getElementById('stop_edit').onclick = document.getElementById('edit_map').onclick = function(e) {
+			selected_palette = null;
+
+			document.getElementById('palette_selector').style.top = "";
+			document.getElementById('palette_selector').style.left = "";
+
+			if(document.getElementById('palette').style.display == "none" || document.getElementById('palette').style.display == "") {
+				document.getElementById('palette').style.display = "block";
+				document.getElementById('edit_map').innerHTML = "Stop editing";
+			} else {
+				document.getElementById('palette').style.display = "none";
+				document.getElementById('edit_map').innerHTML = "Edit the current map";
+			}
+		};
+
+		// Save map binding
+		document.getElementById('saveMap').onclick = function(e) {
+			save("map.txt", map.terrain.join('\r\n'));
+		};
+
+		// Load a new map (text)
+		document.getElementById('map_text_load').onclick = function(e) {
+			map_raw = document.getElementById('map_text').value.split("\n");
+			map.terrain = map_raw;
+			map.init();
+
+			g.init(map.terrain, true);
+			g.debugResetDraw();
+
+			needredraw();
+			document.getElementById('map_text').value = "";
+		};
+
+		// Load a new map (file)
+		document.getElementById('map_file_load').onclick = function(e) {
+			var file = document.getElementById('map_file').files[0];
+			var textType = /text.*/;
+
+			if(file) {
+				var reader = new FileReader();
+
+				reader.onload = function(e) {
+					map.terrain = reader.result.split("\n");
+					map.init();
+
+					g.init(map.terrain, true);
+					g.debugResetDraw();
+
+					needredraw();
+				}
+
+				reader.readAsText(file);	
+			}
+
+			document.getElementById('map_text').files = [];
+		};
+
+	};
+
+	loader.load();
+
+</script>
+
 </body>
 </html>
