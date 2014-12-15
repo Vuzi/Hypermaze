@@ -307,13 +307,11 @@
 			var val = tileset.getTileValue(e.offsetX, e.offsetY);
 
 			if(val != null) {
-				console.log(val);
-
 				selected_palette = val.value;
 
 				// Show the selected element
-				document.getElementById('palette_selector').style.left = val.x + document.getElementById('palette').offsetLeft + 'px';// ;
-				document.getElementById('palette_selector').style.top = val.y + document.getElementById('palette').offsetTop + 'px';// + document.getElementById('palette').offsetLeft;
+				document.getElementById('palette_selector').style.left = val.x + document.getElementById('palette').offsetLeft + 'px';
+				document.getElementById('palette_selector').style.top = val.y + document.getElementById('palette').offsetTop + 'px';
 			} else {
 				selected_palette = null;
 			}
@@ -425,8 +423,6 @@
 
 			document.getElementById('palette_selector').style.top = "";
 			document.getElementById('palette_selector').style.left = "";
-		
-			console.log(document.getElementById('palette_selector').style.top);
 		};
 
 		game.new_pawn = function(pawn) {
