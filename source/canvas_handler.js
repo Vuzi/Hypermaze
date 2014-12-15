@@ -73,7 +73,12 @@ CanvasHandler.prototype.initEvents = function() {
 
 	canvas.onwheel = function(e) {
 		if(!me.locked) {
-			var val = e.details ? (e.details / 100) : (e.wheelDelta / 12000);
+			if(e.wheelDelta)
+				var val = e.wheelDelta / 12000;
+			else if(e.details)
+				var val = e.details / 100;
+			else
+				var val = -e.deltaY / 120;
 
 			me.zoomIn(val, e.offsetX, e.offsetY);
 			return false;
